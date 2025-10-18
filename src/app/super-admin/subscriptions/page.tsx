@@ -116,7 +116,6 @@ export default function SubscriptionsPage() {
   const [subscriptionTiers, setSubscriptionTiers] = useState<
     SubscriptionTierAnalytics[]
   >([]);
-  // Form state
   const [formData, setFormData] = useState({
     name: "",
     student_count_min: "",
@@ -125,6 +124,22 @@ export default function SubscriptionsPage() {
     billing_cycle: "monthly",
   });
   const [loading, setLoading] = useState(true);
+
+  // Helper component for empty state
+  const EmptyChartState = ({
+    icon: Icon,
+    message,
+  }: {
+    icon: React.ElementType;
+    message: string;
+  }) => (
+    <div className="h-[300px] flex items-center justify-center">
+      <div className="text-center text-gray-400">
+        <Icon className="w-12 h-12 mx-auto mb-3" />
+        <p className="text-sm">{message}</p>
+      </div>
+    </div>
+  );
 
   // Calculate chart data
   const institutionDistribution = useMemo(() => {
@@ -135,9 +150,6 @@ export default function SubscriptionsPage() {
     }));
   }, [subscriptionTiers]);
 
-  const hasRevenueData = subscriptionTiers.some(
-    (tier) => tier.total_revenue > 0
-  );
   const revenueDistribution = useMemo(() => {
     return subscriptionTiers.map((tier, index) => ({
       name: tier.name,
@@ -154,6 +166,15 @@ export default function SubscriptionsPage() {
       price: tier.price_per_student,
     }));
   }, [subscriptionTiers]);
+
+  // Check if data exists
+  const hasInstitutionData =
+    institutionDistribution.length > 0 &&
+    institutionDistribution.some((item) => item.value > 0);
+  const hasRevenueData =
+    revenueDistribution.length > 0 &&
+    revenueDistribution.some((item) => item.value > 0);
+  const hasTierComparisonData = tierComparison.length > 0;
 
   // Reset form
   const resetForm = () => {
@@ -172,7 +193,6 @@ export default function SubscriptionsPage() {
     setIsSubmitting(true);
 
     try {
-      // Prepare payload with appropriate types
       const payload: CreateSubscriptionTierRequest = {
         name: formData.name,
         student_count_min: Number(formData.student_count_min),
@@ -207,7 +227,6 @@ export default function SubscriptionsPage() {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     console.log("Updated tier:", { ...formData, id: editingTier?.id });
@@ -456,7 +475,7 @@ export default function SubscriptionsPage() {
             subscriptionTiers.reduce(
               (sum, tier) => sum + tier.price_per_student,
               0
-            ) / subscriptionTiers.length
+            ) / (subscriptionTiers.length || 1)
           ).toFixed(0)}`}
           color="purple"
         />
@@ -472,26 +491,33 @@ export default function SubscriptionsPage() {
               Institution Distribution
             </h2>
           </div>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={institutionDistribution}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                outerRadius={100}
-                label={({ name, percent }: any) =>
-                  `${name} ${(percent * 100).toFixed(0)}%`
-                }
-              >
-                {institutionDistribution.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
+          {hasInstitutionData ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={institutionDistribution}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={100}
+                  label={({ name, percent }: any) =>
+                    `${name} ${(percent * 100).toFixed(0)}%`
+                  }
+                >
+                  {institutionDistribution.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <EmptyChartState
+              icon={Building2}
+              message="No institution data available yet"
+            />
+          )}
         </div>
 
         {/* Revenue Distribution Pie Chart */}
@@ -528,12 +554,10 @@ export default function SubscriptionsPage() {
               </PieChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-[300px] flex items-center justify-center text-gray-500">
-              <div className="text-center">
-                <IndianRupee className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-                <p>No revenue data available</p>
-              </div>
-            </div>
+            <EmptyChartState
+              icon={IndianRupee}
+              message="No revenue data available yet"
+            />
           )}
         </div>
 
@@ -545,34 +569,41 @@ export default function SubscriptionsPage() {
               Tier Comparison
             </h2>
           </div>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={tierComparison}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis dataKey="name" stroke="#6b7280" />
-              <YAxis yAxisId="left" stroke="#6b7280" />
-              <YAxis yAxisId="right" orientation="right" stroke="#6b7280" />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "#fff",
-                  border: "1px solid #e5e7eb",
-                  borderRadius: "8px",
-                }}
-              />
-              <Legend />
-              <Bar
-                yAxisId="left"
-                dataKey="institutions"
-                fill="#3b82f6"
-                name="Institutions"
-              />
-              <Bar
-                yAxisId="right"
-                dataKey="revenue"
-                fill="#10b981"
-                name="Revenue (₹K)"
-              />
-            </BarChart>
-          </ResponsiveContainer>
+          {hasTierComparisonData ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={tierComparison}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis dataKey="name" stroke="#6b7280" />
+                <YAxis yAxisId="left" stroke="#6b7280" />
+                <YAxis yAxisId="right" orientation="right" stroke="#6b7280" />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#fff",
+                    border: "1px solid #e5e7eb",
+                    borderRadius: "8px",
+                  }}
+                />
+                <Legend />
+                <Bar
+                  yAxisId="left"
+                  dataKey="institutions"
+                  fill="#3b82f6"
+                  name="Institutions"
+                />
+                <Bar
+                  yAxisId="right"
+                  dataKey="revenue"
+                  fill="#10b981"
+                  name="Revenue (₹K)"
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <EmptyChartState
+              icon={BarChart3}
+              message="No tier comparison data available yet"
+            />
+          )}
         </div>
 
         {/* Monthly Revenue Trend */}

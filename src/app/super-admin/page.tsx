@@ -8,6 +8,8 @@ import {
   IndianRupee,
   TrendingUp,
   AlertCircle,
+  BarChart3,
+  PieChart as PieChartIcon,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -73,9 +75,32 @@ export default function SuperAdminDashboard() {
     fetchDashboardData();
   }, []);
 
+  // Helper component for empty state
+  const EmptyChartState = ({ 
+    icon: Icon, 
+    message 
+  }: { 
+    icon: React.ElementType; 
+    message: string 
+  }) => (
+    <div className="h-[300px] flex items-center justify-center">
+      <div className="text-center text-gray-400">
+        <Icon className="w-12 h-12 mx-auto mb-3" />
+        <p className="text-sm">{message}</p>
+      </div>
+    </div>
+  );
+
   if (loading) {
     return <Loader />;
   }
+
+  // Check if data exists
+  const hasMonthlyRevenue = monthlyRevenueData.length > 0;
+  const hasEnrollmentData = enrollmentStatusData.length > 0 && 
+    enrollmentStatusData.some(item => item.value > 0);
+  const hasInstitutionData = institutionsByTierData.length > 0 && 
+    institutionsByTierData.some(item => item.count > 0);
 
   return (
     <div className="space-y-8">
@@ -136,76 +161,103 @@ export default function SuperAdminDashboard() {
               Monthly Revenue Trend
             </h2>
           </div>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={monthlyRevenueData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis dataKey="month" stroke="#6b7280" />
-              <YAxis stroke="#6b7280" />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "#fff",
-                  border: "1px solid #e5e7eb",
-                  borderRadius: "8px",
-                }}
-              />
-              <Line
-                type="monotone"
-                dataKey="revenue"
-                stroke="#6366f1"
-                strokeWidth={2}
-                dot={{ fill: "#6366f1", r: 4 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+          {hasMonthlyRevenue ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={monthlyRevenueData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis dataKey="month" stroke="#6b7280" />
+                <YAxis stroke="#6b7280" />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#fff",
+                    border: "1px solid #e5e7eb",
+                    borderRadius: "8px",
+                  }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="revenue"
+                  stroke="#6366f1"
+                  strokeWidth={2}
+                  dot={{ fill: "#6366f1", r: 4 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <EmptyChartState 
+              icon={TrendingUp} 
+              message="No revenue data available yet" 
+            />
+          )}
         </div>
 
         {/* Enrollment Status Distribution */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">
-            Enrollment Status
-          </h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={enrollmentStatusData}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                outerRadius={100}
-                label={({ name, percent }: any) =>
-                  `${name} ${(percent * 100).toFixed(0)}%`
-                }
-              >
-                {enrollmentStatusData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
+          <div className="flex items-center gap-2 mb-6">
+            <PieChartIcon className="w-5 h-5 text-indigo-600" />
+            <h2 className="text-xl font-semibold text-gray-900">
+              Enrollment Status
+            </h2>
+          </div>
+          {hasEnrollmentData ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={enrollmentStatusData}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={100}
+                  label={({ name, percent }: any) =>
+                    `${name} ${(percent * 100).toFixed(0)}%`
+                  }
+                >
+                  {enrollmentStatusData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <EmptyChartState 
+              icon={PieChartIcon} 
+              message="No enrollment data available yet" 
+            />
+          )}
         </div>
 
         {/* Institutions by Subscription Tier */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 lg:col-span-2">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">
-            Institutions by Subscription Tier
-          </h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={institutionsByTierData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis dataKey="tier" stroke="#6b7280" />
-              <YAxis stroke="#6b7280" />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "#fff",
-                  border: "1px solid #e5e7eb",
-                  borderRadius: "8px",
-                }}
-              />
-              <Bar dataKey="count" fill="#6366f1" radius={[8, 8, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+          <div className="flex items-center gap-2 mb-6">
+            <BarChart3 className="w-5 h-5 text-indigo-600" />
+            <h2 className="text-xl font-semibold text-gray-900">
+              Institutions by Subscription Tier
+            </h2>
+          </div>
+          {hasInstitutionData ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={institutionsByTierData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis dataKey="tier" stroke="#6b7280" />
+                <YAxis stroke="#6b7280" />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#fff",
+                    border: "1px solid #e5e7eb",
+                    borderRadius: "8px",
+                  }}
+                />
+                <Bar dataKey="count" fill="#6366f1" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <EmptyChartState 
+              icon={BarChart3} 
+              message="No institution data available yet" 
+            />
+          )}
         </div>
       </div>
     </div>
