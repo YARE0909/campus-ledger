@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Campus Ledger',
-    template: '%s | Campus Ledger', // Will prepend page titles
+    default: 'Acadify',
+    template: '%s | Acadify', // Will prepend page titles
   },
 };
 

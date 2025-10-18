@@ -125,7 +125,7 @@ export default function LoginPage() {
                 <Lock className="w-8 h-8 text-indigo-600" />
               </div>
               <h1 className="text-3xl font-bold text-gray-900">
-                Campus Ledger
+                Acadify
               </h1>
               <p className="text-gray-600 text-sm">
                 Sign in to your account to continue
@@ -229,7 +229,7 @@ export default function LoginPage() {
 
           {/* Footer */}
           <p className="text-center text-gray-500 text-sm mt-8 select-none">
-            © 2025 Campus Ledger. All rights reserved.
+            © 2025 Acadify. All rights reserved.
           </p>
         </div>
       </main>

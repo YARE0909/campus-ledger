@@ -251,7 +251,7 @@ function PlatformSettings() {
         <label className="block text-sm font-medium text-gray-700 mb-2">Platform Name</label>
         <input
           type="text"
-          defaultValue="Campus Ledger"
+          defaultValue="Acadify"
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
         />
       </div>
@@ -710,7 +710,7 @@ function EmailSettings() {
             <label className="block text-sm font-medium text-gray-700 mb-2">From Name</label>
             <input
               type="text"
-              defaultValue="Campus Ledger"
+              defaultValue="Acadify"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
@@ -762,7 +762,7 @@ function InvoiceSettings() {
             <label className="block text-sm font-medium text-gray-700 mb-2">Company Name</label>
             <input
               type="text"
-              defaultValue="Campus Ledger Pvt. Ltd."
+              defaultValue="Acadify Pvt. Ltd."
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>

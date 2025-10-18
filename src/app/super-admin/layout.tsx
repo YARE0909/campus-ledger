@@ -42,10 +42,10 @@ export default function SuperAdminLayout({ children }: LayoutProps) {
         } bg-white border-r border-gray-200 transition-all duration-300 ease-in-out flex flex-col flex-shrink-0`}
       >
         {/* Logo & Toggle */}
-        <div className="flex items-center justify-center gap-4 h-16 px-4 border-b border-gray-200 flex-shrink-0">
+        <div className="flex items-center justify-center gap-24 h-16 px-4 border-b border-gray-200 flex-shrink-0">
           {sidebarOpen && (
-            <h1 className="text-xl font-bold text-indigo-700 transition-opacity duration-300">
-              Campus Ledger
+            <h1 className="text-2xl font-bold text-indigo-700 transition-opacity duration-300">
+              Acadify
             </h1>
           )}
           <button
@@ -128,7 +128,7 @@ export default function SuperAdminLayout({ children }: LayoutProps) {
 
         {/* Footer - Fixed at bottom */}
         <footer className="h-12 bg-white border-t border-gray-200 flex items-center justify-center text-gray-500 text-xs flex-shrink-0">
-          © 2025 Campus Ledger. All rights reserved.
+          © 2025 Acadify. All rights reserved.
         </footer>
       </div>
     </div>
