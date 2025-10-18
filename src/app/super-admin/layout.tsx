@@ -12,6 +12,7 @@ import {
   Bell,
   UserCircle,
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -27,10 +28,10 @@ const navItems = [
 export default function SuperAdminLayout({ children }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
+  const router = useRouter();
+
   const handleLogout = () => {
-    // Add your logout logic here
-    console.log('Logging out...');
-    // Example: router.push('/login');
+    router.push('/login');
   };
 
   return (
@@ -81,10 +82,10 @@ export default function SuperAdminLayout({ children }: LayoutProps) {
         </nav>
 
         {/* Sidebar Logout */}
-        <div className="px-3 h-12 border-t border-gray-200 flex-shrink-0">
+        <div className="px-3 h-12 border-t border-gray-200 flex-shrink-0 flex items-center justify-center">
           <button
             onClick={handleLogout}
-            className={`w-full flex items-center gap-3 px-3 py-3 text-gray-500 rounded-lg hover:bg-red-50 hover:text-red-600 transition-all ${
+            className={`w-full flex items-center gap-3 px-3 py-1 text-gray-500 rounded-lg hover:bg-red-50 hover:text-red-600 transition-all cursor-pointer ${
               !sidebarOpen && 'justify-center'
             }`}
             title={!sidebarOpen ? 'Logout' : ''}
