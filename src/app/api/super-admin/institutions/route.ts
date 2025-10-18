@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { ApiResponse } from '@/lib/api/types';
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
 
-    // Destructure fields (subscription_tier_id should be a string ObjectId)
     const {
       name,
       contact_email,
@@ -17,17 +17,20 @@ export async function POST(request: Request) {
       contact_email: string;
       phone?: string;
       address?: string;
-      subscription_tier_id: string; // Must be string (MongoDB ObjectId)
+      subscription_tier_id: string;
     } = body;
 
     if (!name || !contact_email || !subscription_tier_id) {
-      return NextResponse.json(
-        { error: 'Required fields: name, contact_email, subscription_tier_id' },
-        { status: 400 }
-      );
+      const response: ApiResponse<null> = {
+        status: 400,
+        message: 'Required fields: name, contact_email, subscription_tier_id',
+        error: true,
+        errorMessage: 'Required fields: name, contact_email, subscription_tier_id',
+        data: null,
+      };
+      return NextResponse.json(response, { status: 400 });
     }
 
-    // Ensure subscription_tier_id is a string (casting just in case)
     const subscriptionTierId = subscription_tier_id.toString();
 
     const newTenant = await prisma.tenant.create({
@@ -40,9 +43,27 @@ export async function POST(request: Request) {
       },
     });
 
-    return NextResponse.json(newTenant, { status: 201 });
+    const response: ApiResponse<typeof newTenant> = {
+      status: 201,
+      message: 'Tenant created successfully',
+      error: false,
+      errorMessage: null,
+      data: newTenant,
+    };
+
+    return NextResponse.json(response, { status: 201 });
+
   } catch (error) {
     console.error('Error creating tenant:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+
+    const response: ApiResponse<null> = {
+      status: 500,
+      message: 'Internal Server Error',
+      error: true,
+      errorMessage: 'Internal Server Error',
+      data: null,
+    };
+
+    return NextResponse.json(response, { status: 500 });
   }
 }

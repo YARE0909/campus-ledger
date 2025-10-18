@@ -46,16 +46,16 @@ model Tenant {
 
 model User {
   id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  tenant_id  String   @db.ObjectId
+  tenant_id  String?   @db.ObjectId
   name       String
-  email      String
+  email      String   @unique
   password   String
   role       String
   is_active  Boolean
   created_at DateTime @default(now())
   updated_at DateTime @default(now())
 
-  tenant               Tenant          @relation(fields: [tenant_id], references: [id])
+  tenant               Tenant?          @relation(fields: [tenant_id], references: [id])
   teacherCourses       TeacherCourse[]
   attendanceMarked     Attendance[]    @relation("markedBy")
   performanceEvaluated Performance[]   @relation("evaluatedBy")

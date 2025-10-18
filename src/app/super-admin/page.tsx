@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   Building2,
   Users,
@@ -8,7 +8,7 @@ import {
   IndianRupee,
   TrendingUp,
   AlertCircle,
-} from 'lucide-react';
+} from "lucide-react";
 import {
   ResponsiveContainer,
   BarChart,
@@ -22,9 +22,10 @@ import {
   LineChart,
   Line,
   CartesianGrid,
-} from 'recharts';
-import StatCard from '../components/StatCard';
-
+} from "recharts";
+import StatCard from "../components/StatCard";
+import { apiHandler } from "@/lib/api/apiClient";
+import { endpoints } from "@/lib/api/endpoints";
 
 type EnrollmentStatus = { name: string; value: number; color: string };
 type InstitutionByTier = { tier: string; count: number };
@@ -33,28 +34,37 @@ type MonthlyRevenue = { month: string; revenue: number };
 export default function SuperAdminDashboard() {
   const [totalInstitutions, setTotalInstitutions] = useState<number>(0);
   const [totalActiveStudents, setTotalActiveStudents] = useState<number>(0);
-  const [activeSubscriptionTiers, setActiveSubscriptionTiers] = useState<number>(0);
+  const [activeSubscriptionTiers, setActiveSubscriptionTiers] =
+    useState<number>(0);
   const [totalRevenue, setTotalRevenue] = useState<number>(0);
-  const [monthlyRevenueData, setMonthlyRevenueData] = useState<MonthlyRevenue[]>([]);
-  const [enrollmentStatusData, setEnrollmentStatusData] = useState<EnrollmentStatus[]>([]);
-  const [institutionsByTierData, setInstitutionsByTierData] = useState<InstitutionByTier[]>([]);
+  const [monthlyRevenueData, setMonthlyRevenueData] = useState<
+    MonthlyRevenue[]
+  >([]);
+  const [enrollmentStatusData, setEnrollmentStatusData] = useState<
+    EnrollmentStatus[]
+  >([]);
+  const [institutionsByTierData, setInstitutionsByTierData] = useState<
+    InstitutionByTier[]
+  >([]);
   const [overdueInstitutions, setOverdueInstitutions] = useState<number>(0);
   const [totalCourses, setTotalCourses] = useState<number>(0);
 
   useEffect(() => {
     async function fetchDashboardData() {
-      const res = await fetch('/api/super-admin/dashboard');
-      const data = await res.json();
+      const res = await apiHandler(endpoints.getSuperAdminDashboardData, null);
+      const { data } = res;
 
-      setTotalInstitutions(data.totalInstitutions);
-      setTotalActiveStudents(data.totalActiveStudents);
-      setActiveSubscriptionTiers(data.activeSubscriptionTiers);
-      setTotalRevenue(data.totalRevenue);
-      setMonthlyRevenueData(data.monthlyRevenueData);
-      setEnrollmentStatusData(data.enrollmentStatusData);
-      setInstitutionsByTierData(data.institutionsByTierData);
-      setOverdueInstitutions(data.overdueInstitutions);
-      setTotalCourses(data.totalCourses);
+      if (data) {
+        setTotalInstitutions(data.totalInstitutions);
+        setTotalActiveStudents(data.totalActiveStudents);
+        setActiveSubscriptionTiers(data.activeSubscriptionTiers);
+        setTotalRevenue(data.totalRevenue);
+        setMonthlyRevenueData(data.monthlyRevenueData);
+        setEnrollmentStatusData(data.enrollmentStatusData);
+        setInstitutionsByTierData(data.institutionsByTierData);
+        setOverdueInstitutions(data.overdueInstitutions);
+        setTotalCourses(data.totalCourses);
+      }
     }
 
     fetchDashboardData();
@@ -103,7 +113,8 @@ export default function SuperAdminDashboard() {
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center gap-3">
           <AlertCircle className="w-5 h-5 text-amber-600" />
           <p className="text-amber-800 font-medium">
-            {overdueInstitutions} institution{overdueInstitutions > 1 ? 's have' : ' has'} overdue payments
+            {overdueInstitutions} institution
+            {overdueInstitutions > 1 ? "s have" : " has"} overdue payments
           </p>
         </div>
       )}
@@ -114,7 +125,9 @@ export default function SuperAdminDashboard() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center gap-2 mb-6">
             <TrendingUp className="w-5 h-5 text-indigo-600" />
-            <h2 className="text-xl font-semibold text-gray-900">Monthly Revenue Trend</h2>
+            <h2 className="text-xl font-semibold text-gray-900">
+              Monthly Revenue Trend
+            </h2>
           </div>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={monthlyRevenueData}>
@@ -123,9 +136,9 @@ export default function SuperAdminDashboard() {
               <YAxis stroke="#6b7280" />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: '#fff',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '8px',
+                  backgroundColor: "#fff",
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "8px",
                 }}
               />
               <Line
@@ -133,7 +146,7 @@ export default function SuperAdminDashboard() {
                 dataKey="revenue"
                 stroke="#6366f1"
                 strokeWidth={2}
-                dot={{ fill: '#6366f1', r: 4 }}
+                dot={{ fill: "#6366f1", r: 4 }}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -141,7 +154,9 @@ export default function SuperAdminDashboard() {
 
         {/* Enrollment Status Distribution */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">Enrollment Status</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">
+            Enrollment Status
+          </h2>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
@@ -151,7 +166,9 @@ export default function SuperAdminDashboard() {
                 cx="50%"
                 cy="50%"
                 outerRadius={100}
-                label={({ name, percent }: any) => `${name} ${(percent * 100).toFixed(0)}%`}
+                label={({ name, percent }: any) =>
+                  `${name} ${(percent * 100).toFixed(0)}%`
+                }
               >
                 {enrollmentStatusData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
@@ -164,7 +181,9 @@ export default function SuperAdminDashboard() {
 
         {/* Institutions by Subscription Tier */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 lg:col-span-2">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">Institutions by Subscription Tier</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">
+            Institutions by Subscription Tier
+          </h2>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={institutionsByTierData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -172,9 +191,9 @@ export default function SuperAdminDashboard() {
               <YAxis stroke="#6b7280" />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: '#fff',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '8px',
+                  backgroundColor: "#fff",
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "8px",
                 }}
               />
               <Bar dataKey="count" fill="#6366f1" radius={[8, 8, 0, 0]} />

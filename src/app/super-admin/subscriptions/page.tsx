@@ -36,6 +36,13 @@ import {
   Area,
   AreaChart,
 } from "recharts";
+import { apiHandler } from "@/lib/api/apiClient";
+import toast from "react-hot-toast";
+import { endpoints } from "@/lib/api/endpoints";
+import {
+  CreateSubscriptionTierRequest,
+  SubscriptionTierAnalytics,
+} from "@/lib/api/types";
 
 interface SubscriptionTier {
   id: number;
@@ -99,13 +106,14 @@ const monthlyTrends = [
 const COLORS = ["#3b82f6", "#10b981", "#8b5cf6", "#f59e0b"];
 
 export default function SubscriptionsPage() {
-  const [selectedTier, setSelectedTier] = useState<number | null>(null);
+  const [selectedTier, setSelectedTier] = useState<string | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [editingTier, setEditingTier] = useState<SubscriptionTier | null>(null);
+  const [editingTier, setEditingTier] =
+    useState<SubscriptionTierAnalytics | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [subscriptionTiers, setSubscriptionTiers] = useState<
-    SubscriptionTier[]
+    SubscriptionTierAnalytics[]
   >([]);
   // Form state
   const [formData, setFormData] = useState({
@@ -123,15 +131,18 @@ export default function SubscriptionsPage() {
       value: tier.active_institutions,
       color: COLORS[index % COLORS.length],
     }));
-  }, []);
+  }, [subscriptionTiers]);
 
+  const hasRevenueData = subscriptionTiers.some(
+    (tier) => tier.total_revenue > 0
+  );
   const revenueDistribution = useMemo(() => {
     return subscriptionTiers.map((tier, index) => ({
       name: tier.name,
       value: tier.total_revenue,
       color: COLORS[index % COLORS.length],
     }));
-  }, []);
+  }, [subscriptionTiers]);
 
   const tierComparison = useMemo(() => {
     return subscriptionTiers.map((tier) => ({
@@ -140,7 +151,7 @@ export default function SubscriptionsPage() {
       revenue: tier.total_revenue / 1000, // in thousands
       price: tier.price_per_student,
     }));
-  }, []);
+  }, [subscriptionTiers]);
 
   // Reset form
   const resetForm = () => {
@@ -160,7 +171,7 @@ export default function SubscriptionsPage() {
 
     try {
       // Prepare payload with appropriate types
-      const payload = {
+      const payload: CreateSubscriptionTierRequest = {
         name: formData.name,
         student_count_min: Number(formData.student_count_min),
         student_count_max: Number(formData.student_count_max),
@@ -168,25 +179,21 @@ export default function SubscriptionsPage() {
         billing_cycle: formData.billing_cycle,
       };
 
-      const res = await fetch("/api/super-admin/subscription-tiers", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
+      const res = await apiHandler(endpoints.createSubscriptionTier, payload);
 
-      if (!res.ok) {
-        const errorData = await res.json();
+      if (!res.status || res.status !== 201) {
+        const errorData = res;
         throw new Error(
-          errorData.error || "Failed to create subscription tier"
+          errorData.errorMessage || "Failed to create subscription tier"
         );
       }
 
       setShowAddModal(false);
       resetForm();
       fetchTiers();
+      toast.success("Subscription tier created successfully");
     } catch (error: any) {
+      toast.error(error.message || "Error creating subscription tier");
       console.error("Error creating subscription tier:", error);
     } finally {
       setIsSubmitting(false);
@@ -209,7 +216,7 @@ export default function SubscriptionsPage() {
   };
 
   // Open edit modal
-  const openEditModal = (tier: SubscriptionTier) => {
+  const openEditModal = (tier: SubscriptionTierAnalytics) => {
     setEditingTier(tier);
     setFormData({
       name: tier.name,
@@ -223,7 +230,7 @@ export default function SubscriptionsPage() {
   };
 
   // Define columns
-  const columns: Column<SubscriptionTier>[] = [
+  const columns: Column<SubscriptionTierAnalytics>[] = [
     {
       key: "name",
       label: "Tier Name",
@@ -322,7 +329,7 @@ export default function SubscriptionsPage() {
   ];
 
   // Render actions dropdown
-  const renderActions = (item: SubscriptionTier) => (
+  const renderActions = (item: SubscriptionTierAnalytics) => (
     <div className="relative">
       <button
         onClick={(e) => {
@@ -362,14 +369,19 @@ export default function SubscriptionsPage() {
 
   async function fetchTiers() {
     try {
-      const res = await fetch("/api/super-admin/subscriptionsAnalytics");
-      const data = await res.json();
-      if (data.subscriptionTiers) {
+      const res = await apiHandler(
+        endpoints.getSubscriptionTiersAnalytics,
+        null
+      );
+      const { data } = res;
+      if (data) {
         setSubscriptionTiers(data.subscriptionTiers);
       } else {
+        toast.error("No subscriptionTiers data found");
         console.error("No subscriptionTiers data");
       }
     } catch (err) {
+      toast.error("Failed to fetch subscription tiers analytics");
       console.error("Failed to fetch subscription tiers analytics", err);
     }
   }
@@ -483,28 +495,39 @@ export default function SubscriptionsPage() {
               Revenue Distribution
             </h2>
           </div>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={revenueDistribution}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                outerRadius={100}
-                label={({ name, value }: any) =>
-                  `${name} ₹${(value / 1000).toFixed(0)}K`
-                }
-              >
-                {revenueDistribution.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip
-                formatter={(value: number) => `₹${(value / 1000).toFixed(2)}K`}
-              />
-            </PieChart>
-          </ResponsiveContainer>
+          {hasRevenueData ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={revenueDistribution}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={100}
+                  label={({ name, value }: any) =>
+                    `${name} ₹${(value / 1000).toFixed(0)}K`
+                  }
+                >
+                  {revenueDistribution.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  formatter={(value: number) =>
+                    `₹${(value / 1000).toFixed(2)}K`
+                  }
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-[300px] flex items-center justify-center text-gray-500">
+              <div className="text-center">
+                <IndianRupee className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                <p>No revenue data available</p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Tier Comparison Bar Chart */}

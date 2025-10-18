@@ -22,33 +22,21 @@ import DataTable, { Column, Filter } from "@/app/components/DataTable";
 import StatCard from "@/app/components/StatCard";
 import { FormModal } from "@/app/components/Modal";
 import InstitutionForm from "./components/InstitutionForm";
+import toast from "react-hot-toast";
+import { endpoints } from "@/lib/api/endpoints";
+import { apiHandler } from "@/lib/api/apiClient";
+import { CreateInstitutionRequest, Institution } from "@/lib/api/types";
 
-interface Institution {
-  id: number;
-  name: string;
-  contact_email: string;
-  phone: string;
-  address: string;
-  subscription_tier: string;
-  subscription_tier_id: number;
-  status: string;
-  active_students: number;
-  total_courses: number;
-  monthly_revenue: number;
-  created_at: string;
-  last_payment: string | null;
-  payment_status: string;
-}
 
 export default function InstitutionsPage() {
-  const [selectedInstitution, setSelectedInstitution] = useState<number | null>(
+  const [selectedInstitution, setSelectedInstitution] = useState<string | null>(
     null
   );
   const [showAddModal, setShowAddModal] = useState(false);
   const [institutions, setInstitutions] = useState<Institution[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<CreateInstitutionRequest>({
     name: "",
     contact_email: "",
     phone: "",
@@ -62,20 +50,31 @@ export default function InstitutionsPage() {
 
   async function fetchTiers() {
     try {
-      const res = await fetch("/api/super-admin/subscription-tiers");
-      const data = await res.json();
-      setSubscriptionTiers(data);
+      const res = await apiHandler(endpoints.getSubscriptionTiers, null);
+      const { data } = res;
+
+      if (data) {
+        setSubscriptionTiers(data);
+      }
     } catch (err) {
+      toast.error("Failed to fetch subscription tiers");
       console.error("Failed to fetch subscription tiers", err);
     }
   }
 
   async function fetchData() {
     try {
-      const res = await fetch("/api/super-admin/institutionsAnalytics");
-      const data = await res.json();
-      setInstitutions(data.institutions);
+      const res = await apiHandler(
+        endpoints.getInstitutionsAnalytics,
+        null
+      );
+      const { data } = res;
+
+      if (data) {
+        setInstitutions(data.institutions);
+      }
     } catch (error) {
+      toast.error("Failed to fetch institutions");
       console.error("Failed to fetch institutions", error);
     } finally {
       setLoading(false);
@@ -291,12 +290,8 @@ export default function InstitutionsPage() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const res = await fetch("/api/super-admin/institutions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-      if (!res.ok) {
+      const res = await apiHandler(endpoints.createInstitution, formData);
+      if (!res.status || res.status !== 201) {
         throw new Error("Failed to create institution");
       }
       setShowAddModal(false);

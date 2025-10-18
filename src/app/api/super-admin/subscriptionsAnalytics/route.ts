@@ -1,6 +1,31 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+type ApiResponse<T> = {
+  status: number;
+  message: string;
+  error: boolean;
+  errorMessage: string | null;
+  data: T | null;
+};
+
+export interface SubscriptionTierAnalytics {
+  id: string;
+  name: string;
+  student_count_min: number;
+  student_count_max: number;
+  price_per_student: number;
+  billing_cycle: string;
+  created_at: Date;
+  updated_at: Date;
+  active_institutions: number;
+  total_revenue: number;
+}
+
+export interface SubscriptionTiersAnalyticsData {
+  subscriptionTiers: SubscriptionTierAnalytics[];
+}
+
 export async function GET() {
   try {
     // Fetch subscription tiers with counts/sum joined from tenants and billing
@@ -46,15 +71,30 @@ export async function GET() {
       };
     });
 
-    // Mock monthly revenue trend data can be augmented or fetched similarly here,
-    // or you can keep your frontend mock for now.
+    const responseData: SubscriptionTiersAnalyticsData = {
+      subscriptionTiers,
+    };
 
-    return NextResponse.json({ subscriptionTiers });
+    const response: ApiResponse<SubscriptionTiersAnalyticsData> = {
+      status: 200,
+      message: 'Subscription tiers analytics fetched successfully',
+      error: false,
+      errorMessage: null,
+      data: responseData,
+    };
+
+    return NextResponse.json(response);
   } catch (error) {
     console.error('Failed to fetch subscription tiers analytics', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch subscription tiers analytics' },
-      { status: 500 }
-    );
+
+    const response: ApiResponse<null> = {
+      status: 500,
+      message: 'Failed to fetch subscription tiers analytics',
+      error: true,
+      errorMessage: 'Failed to fetch subscription tiers analytics',
+      data: null,
+    };
+
+    return NextResponse.json(response, { status: 500 });
   }
 }

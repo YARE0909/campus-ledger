@@ -1,16 +1,10 @@
+import { CreateInstitutionRequest } from '@/lib/api/types';
 import React from 'react';
 
-interface InstitutionFormData {
-  name: string;
-  contact_email: string;
-  phone: string;
-  address: string;
-  subscription_tier_id: string; // string ID of subscription tier (ObjectId)
-}
 
 interface InstitutionFormProps {
-  formData: InstitutionFormData;
-  setFormData: (data: InstitutionFormData) => void;
+  formData: CreateInstitutionRequest;
+  setFormData: (data: CreateInstitutionRequest) => void;
   subscriptionTiers: { id: string; name: string }[];
 }
 
