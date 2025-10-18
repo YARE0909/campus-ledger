@@ -1,0 +1,50 @@
+[
+  {
+    "id": 1,
+    "name": "Basic",
+    "student_count_min": 1,
+    "student_count_max": 50,
+    "price_per_student": 25.0,
+    "billing_cycle": "monthly",
+    "created_at": "2024-01-01",
+    "updated_at": "2024-01-01",
+    "active_institutions": 32,
+    "total_revenue": 45000
+  },
+  {
+    "id": 2,
+    "name": "Standard",
+    "student_count_min": 51,
+    "student_count_max": 200,
+    "price_per_student": 20.0,
+    "billing_cycle": "monthly",
+    "created_at": "2024-01-01",
+    "updated_at": "2024-01-01",
+    "active_institutions": 28,
+    "total_revenue": 85000
+  },
+  {
+    "id": 3,
+    "name": "Premium",
+    "student_count_min": 201,
+    "student_count_max": 500,
+    "price_per_student": 15.0,
+    "billing_cycle": "monthly",
+    "created_at": "2024-01-01",
+    "updated_at": "2024-01-01",
+    "active_institutions": 18,
+    "total_revenue": 125000
+  },
+  {
+    "id": 4,
+    "name": "Enterprise",
+    "student_count_min": 501,
+    "student_count_max": 9999,
+    "price_per_student": 12.0,
+    "billing_cycle": "monthly",
+    "created_at": "2024-01-01",
+    "updated_at": "2024-01-01",
+    "active_institutions": 5,
+    "total_revenue": 95000
+  }
+]
