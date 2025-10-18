@@ -12,6 +12,7 @@ import {
   Landmark,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { destroyCookie } from 'nookies';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -30,6 +31,10 @@ export default function SuperAdminLayout({ children }: LayoutProps) {
   const router = useRouter();
 
   const handleLogout = () => {
+    destroyCookie(null, 'token', {
+      path: '/',
+    });
+    
     router.push('/login');
   };
 

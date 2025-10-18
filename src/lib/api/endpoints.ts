@@ -9,7 +9,6 @@ import {
   InstitutionAnalyticsResponse,
   LoginRequest,
   LoginResponse,
-  LogoutRequest,
   SubscriptionTierResponse,
   SuperAdminDashboardResponse,
 } from "./types";
@@ -21,12 +20,6 @@ export const endpoints = {
     path: () => "/api/auth/login",
     type: "OPEN",
   } as Endpoint<LoginRequest, LoginResponse>,
-
-  logoutUser: {
-    method: "POST",
-    path: () => "/api/auth/logout",
-    type: "CLOSE",
-  } as Endpoint<LogoutRequest, null>,
 
   getSuperAdminDashboardData: {
     method: "GET",

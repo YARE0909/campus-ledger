@@ -10,6 +10,9 @@ export function middleware(req: NextRequest) {
   const token = req.cookies.get("token")?.value;
   const { pathname } = req.nextUrl;
 
+  console.log("Middleware invoked for path:", pathname);
+  console.log("Token exists:", !!token);
+
   // Helper function to decode JWT payload (Edge-compatible)
   const decodeJwtPayload = (tok: string): JwtPayload | null => {
     try {
@@ -24,44 +27,54 @@ export function middleware(req: NextRequest) {
     }
   };
 
-  // 1. Redirect authenticated users off the public home page based on their role
-  if (pathname === "/" && token) {
+  // Define public routes (routes that don't require authentication)
+  const isPublicRoute = pathname === "/" || pathname === "/login";
+
+  // Define protected routes
+  const isProtectedRoute =
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/super-admin");
+
+  // 1. Block unauthenticated access to any protected route - REDIRECT TO LOGIN
+  if (!token && isProtectedRoute) {
+    console.log("No token found, redirecting to /login");
+    return NextResponse.redirect(new URL("/login", req.url));
+  }
+
+  // 2. Redirect authenticated users away from login page based on their role
+  if (isPublicRoute && token) {
     const payload = decodeJwtPayload(token);
-    if (payload && payload.role === "super_admin") {
+    if (payload?.role === "super_admin") {
       return NextResponse.redirect(new URL("/super-admin", req.url));
     }
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
-  const isUserRoute =
-    pathname.startsWith("/dashboard") ||
-    pathname.startsWith("/exam") ||
-    pathname.startsWith("/admin");
-
-  // 2. Block unauthenticated access to any protected route
-  if (!token && isUserRoute) {
-    return NextResponse.redirect(new URL("/", req.url));
-  }
-
-  // 3. Role-based route protection
-  if (token && isUserRoute) {
+  // 3. Role-based route protection for authenticated users
+  if (token && isProtectedRoute) {
     const payload = decodeJwtPayload(token);
-    if (payload) {
-      // If admin user tries to access dashboard root (not sub-routes), redirect to admin
-      if (payload.role === "super_admin" && pathname === "/dashboard") {
-        return NextResponse.redirect(new URL("/super-admin", req.url));
-      }
 
-      // Allow admin users to access exam routes (for system check, taking tests, etc.)
-      // Admins should be able to take exams just like regular users
-
-      // If regular user tries to access admin routes, redirect to dashboard
-      if (payload.role !== "ADMIN" && pathname.startsWith("/super-admin")) {
-        return NextResponse.redirect(new URL("/dashboard", req.url));
-      }
-    } else {
+    if (!payload) {
       // Invalid token, redirect to login
-      return NextResponse.redirect(new URL("/", req.url));
+      console.log("Invalid token, redirecting to /login");
+      return NextResponse.redirect(new URL("/login", req.url));
+    }
+
+    // Super admin trying to access regular dashboard
+    if (payload.role === "super_admin" && pathname.startsWith("/dashboard")) {
+      console.log(
+        "Super admin accessing dashboard, redirecting to /super-admin"
+      );
+      return NextResponse.redirect(new URL("/super-admin", req.url));
+    }
+
+    // Non-super-admin trying to access super-admin routes
+    if (payload.role !== "super_admin" && pathname.startsWith("/super-admin")) {
+      console.log(
+        "Non-super-admin accessing super-admin routes, redirecting to /dashboard"
+      );
+      return NextResponse.redirect(new URL("/dashboard", req.url));
     }
   }
 
@@ -71,10 +84,9 @@ export function middleware(req: NextRequest) {
 export const config = {
   matcher: [
     "/",
+    "/login",
     "/dashboard/:path*",
-    "/exam/:path*",
-    "/admin/:path*", // protect admin routes
-    "/api/super-admin/:path*",
-    "/api/common/:path*",
+    "/admin/:path*",
+    "/super-admin/:path*",
   ],
 };

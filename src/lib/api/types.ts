@@ -31,10 +31,6 @@ export interface LoginResponse {
   };
 }
 
-export interface LogoutRequest {
-  Username: string;
-}
-
 export interface MonthlyRevenue {
   month: string;
   revenue: number;
