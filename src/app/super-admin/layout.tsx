@@ -3,13 +3,13 @@
 import React, { useState } from 'react';
 import {
   Home,
-  Users,
   Settings,
   LogOut,
   Menu,
   CreditCard,
   Bell,
   UserCircle,
+  Landmark,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -19,7 +19,7 @@ interface LayoutProps {
 
 const navItems = [
   { name: 'Dashboard', icon: Home, href: '/super-admin' },
-  { name: 'Institutions', icon: Users, href: '/super-admin/institutions' },
+  { name: 'Institutions', icon: Landmark, href: '/super-admin/institutions' },
   { name: 'Subscriptions', icon: CreditCard, href: '/super-admin/subscriptions' },
   { name: 'Settings', icon: Settings, href: '/super-admin/settings' },
 ];
