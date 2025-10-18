@@ -43,6 +43,7 @@ import {
   CreateSubscriptionTierRequest,
   SubscriptionTierAnalytics,
 } from "@/lib/api/types";
+import Loader from "@/app/components/Loader";
 
 interface SubscriptionTier {
   id: number;
@@ -123,6 +124,7 @@ export default function SubscriptionsPage() {
     price_per_student: "",
     billing_cycle: "monthly",
   });
+  const [loading, setLoading] = useState(true);
 
   // Calculate chart data
   const institutionDistribution = useMemo(() => {
@@ -376,6 +378,7 @@ export default function SubscriptionsPage() {
       const { data } = res;
       if (data) {
         setSubscriptionTiers(data.subscriptionTiers);
+        setLoading(false);
       } else {
         toast.error("No subscriptionTiers data found");
         console.error("No subscriptionTiers data");
@@ -389,6 +392,10 @@ export default function SubscriptionsPage() {
   useEffect(() => {
     fetchTiers();
   }, []);
+
+  if (loading) {
+    return <Loader />;
+  }
 
   return (
     <div className="space-y-6">

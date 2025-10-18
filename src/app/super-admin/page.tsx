@@ -26,6 +26,7 @@ import {
 import StatCard from "../components/StatCard";
 import { apiHandler } from "@/lib/api/apiClient";
 import { endpoints } from "@/lib/api/endpoints";
+import Loader from "../components/Loader";
 
 type EnrollmentStatus = { name: string; value: number; color: string };
 type InstitutionByTier = { tier: string; count: number };
@@ -48,27 +49,33 @@ export default function SuperAdminDashboard() {
   >([]);
   const [overdueInstitutions, setOverdueInstitutions] = useState<number>(0);
   const [totalCourses, setTotalCourses] = useState<number>(0);
+  const [loading, setLoading] = useState(true);
+
+  async function fetchDashboardData() {
+    const res = await apiHandler(endpoints.getSuperAdminDashboardData, null);
+    const { data } = res;
+
+    if (data) {
+      setTotalInstitutions(data.totalInstitutions);
+      setTotalActiveStudents(data.totalActiveStudents);
+      setActiveSubscriptionTiers(data.activeSubscriptionTiers);
+      setTotalRevenue(data.totalRevenue);
+      setMonthlyRevenueData(data.monthlyRevenueData);
+      setEnrollmentStatusData(data.enrollmentStatusData);
+      setInstitutionsByTierData(data.institutionsByTierData);
+      setOverdueInstitutions(data.overdueInstitutions);
+      setTotalCourses(data.totalCourses);
+      setLoading(false);
+    }
+  }
 
   useEffect(() => {
-    async function fetchDashboardData() {
-      const res = await apiHandler(endpoints.getSuperAdminDashboardData, null);
-      const { data } = res;
-
-      if (data) {
-        setTotalInstitutions(data.totalInstitutions);
-        setTotalActiveStudents(data.totalActiveStudents);
-        setActiveSubscriptionTiers(data.activeSubscriptionTiers);
-        setTotalRevenue(data.totalRevenue);
-        setMonthlyRevenueData(data.monthlyRevenueData);
-        setEnrollmentStatusData(data.enrollmentStatusData);
-        setInstitutionsByTierData(data.institutionsByTierData);
-        setOverdueInstitutions(data.overdueInstitutions);
-        setTotalCourses(data.totalCourses);
-      }
-    }
-
     fetchDashboardData();
   }, []);
+
+  if (loading) {
+    return <Loader />;
+  }
 
   return (
     <div className="space-y-8">

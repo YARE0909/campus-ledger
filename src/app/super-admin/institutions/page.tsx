@@ -26,7 +26,7 @@ import toast from "react-hot-toast";
 import { endpoints } from "@/lib/api/endpoints";
 import { apiHandler } from "@/lib/api/apiClient";
 import { CreateInstitutionRequest, Institution } from "@/lib/api/types";
-
+import Loader from "@/app/components/Loader";
 
 export default function InstitutionsPage() {
   const [selectedInstitution, setSelectedInstitution] = useState<string | null>(
@@ -64,10 +64,7 @@ export default function InstitutionsPage() {
 
   async function fetchData() {
     try {
-      const res = await apiHandler(
-        endpoints.getInstitutionsAnalytics,
-        null
-      );
+      const res = await apiHandler(endpoints.getInstitutionsAnalytics, null);
       const { data } = res;
 
       if (data) {
@@ -312,7 +309,7 @@ export default function InstitutionsPage() {
   };
 
   if (loading) {
-    return <div>Loading institutions...</div>;
+    return <Loader />;
   }
 
   return (

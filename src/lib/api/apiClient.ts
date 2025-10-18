@@ -1,6 +1,5 @@
 import { log } from "console";
 import { logger } from "../logger/logger";
-import { env } from "process";
 import getCookie from "./getCookie";
 import { ApiResponse, Endpoint } from "./types";
 
