@@ -1,7 +1,7 @@
 // app/super-admin/subscriptions/page.tsx
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   Plus,
   Edit,
@@ -36,7 +36,6 @@ import {
   Area,
   AreaChart,
 } from "recharts";
-import subscriptionTiers from "@/mock/subscriptionTiers.json";
 
 interface SubscriptionTier {
   id: number;
@@ -105,7 +104,9 @@ export default function SubscriptionsPage() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingTier, setEditingTier] = useState<SubscriptionTier | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const [subscriptionTiers, setSubscriptionTiers] = useState<
+    SubscriptionTier[]
+  >([]);
   // Form state
   const [formData, setFormData] = useState({
     name: "",
@@ -157,13 +158,39 @@ export default function SubscriptionsPage() {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    try {
+      // Prepare payload with appropriate types
+      const payload = {
+        name: formData.name,
+        student_count_min: Number(formData.student_count_min),
+        student_count_max: Number(formData.student_count_max),
+        price_per_student: parseFloat(formData.price_per_student),
+        billing_cycle: formData.billing_cycle,
+      };
 
-    console.log("New tier:", formData);
-    setIsSubmitting(false);
-    setShowAddModal(false);
-    resetForm();
+      const res = await fetch("/api/super-admin/subscription-tiers", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(
+          errorData.error || "Failed to create subscription tier"
+        );
+      }
+
+      setShowAddModal(false);
+      resetForm();
+      fetchTiers();
+    } catch (error: any) {
+      console.error("Error creating subscription tier:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Handle edit tier
@@ -332,6 +359,24 @@ export default function SubscriptionsPage() {
       )}
     </div>
   );
+
+  async function fetchTiers() {
+    try {
+      const res = await fetch("/api/super-admin/subscriptionsAnalytics");
+      const data = await res.json();
+      if (data.subscriptionTiers) {
+        setSubscriptionTiers(data.subscriptionTiers);
+      } else {
+        console.error("No subscriptionTiers data");
+      }
+    } catch (err) {
+      console.error("Failed to fetch subscription tiers analytics", err);
+    }
+  }
+
+  useEffect(() => {
+    fetchTiers();
+  }, []);
 
   return (
     <div className="space-y-6">

@@ -1,7 +1,6 @@
-// app/super-admin/institutions/page.tsx
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Mail,
   Phone,
@@ -21,7 +20,8 @@ import {
 } from "lucide-react";
 import DataTable, { Column, Filter } from "@/app/components/DataTable";
 import StatCard from "@/app/components/StatCard";
-import institutions from "@/mock/institutions.json"
+import { FormModal } from "@/app/components/Modal";
+import InstitutionForm from "./components/InstitutionForm";
 
 interface Institution {
   id: number;
@@ -36,7 +36,7 @@ interface Institution {
   total_courses: number;
   monthly_revenue: number;
   created_at: string;
-  last_payment: string;
+  last_payment: string | null;
   payment_status: string;
 }
 
@@ -45,6 +45,48 @@ export default function InstitutionsPage() {
     null
   );
   const [showAddModal, setShowAddModal] = useState(false);
+  const [institutions, setInstitutions] = useState<Institution[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const [formData, setFormData] = useState({
+    name: "",
+    contact_email: "",
+    phone: "",
+    address: "",
+    subscription_tier_id: "",
+  });
+  const [subscriptionTiers, setSubscriptionTiers] = useState<
+    { id: string; name: string }[]
+  >([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  async function fetchTiers() {
+    try {
+      const res = await fetch("/api/super-admin/subscription-tiers");
+      const data = await res.json();
+      setSubscriptionTiers(data);
+    } catch (err) {
+      console.error("Failed to fetch subscription tiers", err);
+    }
+  }
+
+  async function fetchData() {
+    try {
+      const res = await fetch("/api/super-admin/institutionsAnalytics");
+      const data = await res.json();
+      setInstitutions(data.institutions);
+    } catch (error) {
+      console.error("Failed to fetch institutions", error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // Fetch institutions and summary data from API
+  useEffect(() => {
+    fetchTiers();
+    fetchData();
+  }, []);
 
   // Define columns
   const columns: Column<Institution>[] = [
@@ -61,7 +103,7 @@ export default function InstitutionsPage() {
           </div>
         </div>
       ),
-      exportRender: (item: { name: any }) => item.name,
+      exportRender: (item) => item.name,
     },
     {
       key: "contact_email",
@@ -78,7 +120,7 @@ export default function InstitutionsPage() {
           </div>
         </div>
       ),
-      exportRender: (item: { contact_email: any }) => item.contact_email,
+      exportRender: (item) => item.contact_email,
     },
     {
       key: "subscription_tier",
@@ -89,8 +131,7 @@ export default function InstitutionsPage() {
           {item.subscription_tier}
         </span>
       ),
-      exportRender: (item: { subscription_tier: any }) =>
-        item.subscription_tier,
+      exportRender: (item) => item.subscription_tier,
     },
     {
       key: "active_students",
@@ -104,7 +145,7 @@ export default function InstitutionsPage() {
           </span>
         </div>
       ),
-      exportRender: (item: { active_students: any }) => item.active_students,
+      exportRender: (item) => item.active_students,
     },
     {
       key: "monthly_revenue",
@@ -116,7 +157,7 @@ export default function InstitutionsPage() {
           {(item.monthly_revenue / 1000).toFixed(0)}K/mo
         </div>
       ),
-      exportRender: (item: { monthly_revenue: any }) => item.monthly_revenue,
+      exportRender: (item) => item.monthly_revenue,
     },
     {
       key: "status",
@@ -138,7 +179,7 @@ export default function InstitutionsPage() {
           </span>
         );
       },
-      exportRender: (item: { status: any }) => item.status,
+      exportRender: (item) => item.status,
     },
     {
       key: "payment_status",
@@ -161,7 +202,7 @@ export default function InstitutionsPage() {
           </span>
         );
       },
-      exportRender: (item: { payment_status: any }) => item.payment_status,
+      exportRender: (item) => item.payment_status,
     },
   ];
 
@@ -188,12 +229,9 @@ export default function InstitutionsPage() {
     {
       key: "subscription_tier",
       label: "Subscription Tier",
-      options: [
-        { value: "Basic", label: "Basic" },
-        { value: "Standard", label: "Standard" },
-        { value: "Premium", label: "Premium" },
-        { value: "Enterprise", label: "Enterprise" },
-      ],
+      options: subscriptionTiers.map((item) => {
+        return { value: item.id, label: item.name };
+      }),
     },
   ];
 
@@ -211,7 +249,6 @@ export default function InstitutionsPage() {
       >
         <MoreVertical className="w-5 h-5 text-gray-600" />
       </button>
-
       {selectedInstitution === item.id && (
         <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
           <button className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
@@ -249,6 +286,39 @@ export default function InstitutionsPage() {
       )}
     </div>
   );
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      const res = await fetch("/api/super-admin/institutions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+      if (!res.ok) {
+        throw new Error("Failed to create institution");
+      }
+      setShowAddModal(false);
+      setFormData({
+        name: "",
+        contact_email: "",
+        phone: "",
+        address: "",
+        subscription_tier_id: "",
+      });
+      fetchData();
+    } catch (error) {
+      console.error(error);
+      alert("Error creating institution.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (loading) {
+    return <div>Loading institutions...</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -313,6 +383,21 @@ export default function InstitutionsPage() {
         renderActions={renderActions}
         onRowClick={(item: any) => console.log("Clicked institution:", item)}
       />
+
+      <FormModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        title="Add Institution"
+        onSubmit={handleSubmit}
+        isSubmitting={isSubmitting}
+        submitLabel="Create Institution"
+      >
+        <InstitutionForm
+          formData={formData}
+          setFormData={setFormData}
+          subscriptionTiers={subscriptionTiers}
+        />
+      </FormModal>
     </div>
   );
 }

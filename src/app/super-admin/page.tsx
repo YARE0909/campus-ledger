@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Building2,
   Users,
@@ -19,63 +19,55 @@ import {
   PieChart,
   Pie,
   Cell,
-  Legend,
   LineChart,
   Line,
   CartesianGrid,
 } from 'recharts';
+import StatCard from '../components/StatCard';
+
+
+type EnrollmentStatus = { name: string; value: number; color: string };
+type InstitutionByTier = { tier: string; count: number };
+type MonthlyRevenue = { month: string; revenue: number };
 
 export default function SuperAdminDashboard() {
-  // Derived from COUNT(*) from tenants table
-  const totalInstitutions = 128;
+  const [totalInstitutions, setTotalInstitutions] = useState<number>(0);
+  const [totalActiveStudents, setTotalActiveStudents] = useState<number>(0);
+  const [activeSubscriptionTiers, setActiveSubscriptionTiers] = useState<number>(0);
+  const [totalRevenue, setTotalRevenue] = useState<number>(0);
+  const [monthlyRevenueData, setMonthlyRevenueData] = useState<MonthlyRevenue[]>([]);
+  const [enrollmentStatusData, setEnrollmentStatusData] = useState<EnrollmentStatus[]>([]);
+  const [institutionsByTierData, setInstitutionsByTierData] = useState<InstitutionByTier[]>([]);
+  const [overdueInstitutions, setOverdueInstitutions] = useState<number>(0);
+  const [totalCourses, setTotalCourses] = useState<number>(0);
 
-  // Derived from COUNT(*) from students table WHERE status = 'ACTIVE'
-  const totalActiveStudents = 5320;
+  useEffect(() => {
+    async function fetchDashboardData() {
+      const res = await fetch('/api/super-admin/dashboard');
+      const data = await res.json();
 
-  // Derived from COUNT(DISTINCT subscription_tier_id) from tenants
-  const activeSubscriptionTiers = 4;
+      setTotalInstitutions(data.totalInstitutions);
+      setTotalActiveStudents(data.totalActiveStudents);
+      setActiveSubscriptionTiers(data.activeSubscriptionTiers);
+      setTotalRevenue(data.totalRevenue);
+      setMonthlyRevenueData(data.monthlyRevenueData);
+      setEnrollmentStatusData(data.enrollmentStatusData);
+      setInstitutionsByTierData(data.institutionsByTierData);
+      setOverdueInstitutions(data.overdueInstitutions);
+      setTotalCourses(data.totalCourses);
+    }
 
-  // Derived from SUM(total_amount) from institution_billing WHERE status = 'PAID'
-  const totalRevenue = 1250000;
-
-  // Derived from institution_billing grouped by month_year
-  const monthlyRevenueData = [
-    { month: 'Apr', revenue: 85000 },
-    { month: 'May', revenue: 95000 },
-    { month: 'Jun', revenue: 110000 },
-    { month: 'Jul', revenue: 125000 },
-    { month: 'Aug', revenue: 140000 },
-    { month: 'Sep', revenue: 155000 },
-    { month: 'Oct', revenue: 175000 },
-  ];
-
-  // Derived from enrollments table grouped by status
-  const enrollmentStatusData = [
-    { name: 'Active', value: 4200, color: '#6366f1' },
-    { name: 'Completed', value: 980, color: '#10b981' },
-    { name: 'Dropped', value: 140, color: '#ef4444' },
-  ];
-
-  // Derived from tenants JOIN subscription_tiers grouped by tier name
-  const institutionsByTierData = [
-    { tier: 'Basic', count: 45 },
-    { tier: 'Standard', count: 52 },
-    { tier: 'Premium', count: 25 },
-    { tier: 'Enterprise', count: 6 },
-  ];
-
-  // Derived from institution_billing WHERE status = 'OVERDUE'
-  const overdueInstitutions = 8;
-
-  // Derived from COUNT(*) from courses table
-  const totalCourses = 342;
+    fetchDashboardData();
+  }, []);
 
   return (
     <div className="space-y-8">
       {/* Header Section */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Dashboard Overview</h1>
-        <p className="text-gray-600 mt-2">Welcome back! Here's what's happening across all institutions.</p>
+        <p className="text-gray-600 mt-2">
+          Welcome back! Here's what's happening across all institutions.
+        </p>
       </div>
 
       {/* Stats Cards */}
@@ -84,29 +76,25 @@ export default function SuperAdminDashboard() {
           icon={Building2}
           label="Total Institutions"
           value={totalInstitutions}
-          bgColor="bg-blue-50"
-          iconColor="text-blue-600"
+          color="blue"
         />
         <StatCard
           icon={Users}
           label="Active Students"
           value={totalActiveStudents.toLocaleString()}
-          bgColor="bg-green-50"
-          iconColor="text-green-600"
+          color="green"
         />
         <StatCard
           icon={GraduationCap}
           label="Total Courses"
           value={totalCourses}
-          bgColor="bg-purple-50"
-          iconColor="text-purple-600"
+          color="purple"
         />
         <StatCard
           icon={IndianRupee}
           label="Total Revenue"
           value={`₹${(totalRevenue / 100000).toFixed(1)}L`}
-          bgColor="bg-indigo-50"
-          iconColor="text-indigo-600"
+          color="indigo"
         />
       </div>
 
@@ -192,66 +180,6 @@ export default function SuperAdminDashboard() {
               <Bar dataKey="count" fill="#6366f1" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
-        </div>
-      </div>
-
-      {/* Recent Activity Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-6">Recent Institutions</h2>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Institution Name</th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Subscription Tier</th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Active Students</th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {[
-                { name: 'Bright Future Academy', tier: 'Premium', students: 245, status: 'Active' },
-                { name: 'Creative Arts Institute', tier: 'Standard', students: 132, status: 'Active' },
-                { name: 'Tech Learning Hub', tier: 'Enterprise', students: 580, status: 'Active' },
-                { name: 'Music Masters School', tier: 'Basic', students: 68, status: 'Active' },
-              ].map((institution, index) => (
-                <tr key={index} className="border-b border-gray-100 hover:bg-gray-50 transition">
-                  <td className="py-3 px-4 font-medium text-gray-900">{institution.name}</td>
-                  <td className="py-3 px-4 text-gray-700">{institution.tier}</td>
-                  <td className="py-3 px-4 text-gray-700">{institution.students}</td>
-                  <td className="py-3 px-4">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                      {institution.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-interface StatCardProps {
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  value: string | number;
-  bgColor: string;
-  iconColor: string;
-}
-
-function StatCard({ icon: Icon, label, value, bgColor, iconColor }: StatCardProps) {
-  return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm font-medium text-gray-600 mb-1">{label}</p>
-          <p className="text-2xl font-bold text-gray-900">{value}</p>
-        </div>
-        <div className={`${bgColor} p-3 rounded-lg`}>
-          <Icon className={`w-6 h-6 ${iconColor}`} />
         </div>
       </div>
     </div>
