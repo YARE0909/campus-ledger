@@ -7,7 +7,6 @@ import {
   Settings,
   LogOut,
   Menu,
-  X,
   CreditCard,
   Bell,
   UserCircle,
