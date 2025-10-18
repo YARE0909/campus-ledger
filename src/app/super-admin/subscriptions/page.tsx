@@ -33,8 +33,6 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  LineChart,
-  Line,
   Area,
   AreaChart,
 } from "recharts";
