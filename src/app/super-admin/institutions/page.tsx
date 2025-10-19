@@ -370,7 +370,7 @@ export default function InstitutionsPage() {
         filters={filters}
         searchPlaceholder="Search institutions..."
         searchKeys={["name", "contact_email", "phone", "address"]}
-        itemsPerPage={10}
+        itemsPerPage={5}
         exportFileName="institutions"
         renderActions={renderActions}
         onRowClick={(item: any) => console.log("Clicked institution:", item)}

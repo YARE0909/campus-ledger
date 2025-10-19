@@ -24,7 +24,7 @@ export interface LoginRequest {
 export interface LoginResponse {
   token: string;
   user: {
-    sub: string;
+    id: string;
     role: string;
     email: string;
     name: string;

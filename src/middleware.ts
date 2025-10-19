@@ -33,7 +33,6 @@ export function middleware(req: NextRequest) {
   // Define protected routes
   const isProtectedRoute =
     pathname.startsWith("/dashboard") ||
-    pathname.startsWith("/admin") ||
     pathname.startsWith("/super-admin");
 
   // 1. Block unauthenticated access to any protected route - REDIRECT TO LOGIN
@@ -47,6 +46,9 @@ export function middleware(req: NextRequest) {
     const payload = decodeJwtPayload(token);
     if (payload?.role === "super_admin") {
       return NextResponse.redirect(new URL("/super-admin", req.url));
+    }
+    if (payload?.role === "admin") {
+      return NextResponse.redirect(new URL("/dashboard", req.url));
     }
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
@@ -86,7 +88,6 @@ export const config = {
     "/",
     "/login",
     "/dashboard/:path*",
-    "/admin/:path*",
     "/super-admin/:path*",
   ],
 };

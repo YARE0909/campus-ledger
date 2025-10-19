@@ -2,10 +2,11 @@
 
 import React from "react";
 import {
-  Settings,
-  CreditCard,
-  Landmark,
   LayoutDashboard,
+  IndianRupee,
+  Users,
+  GraduationCap,
+  LibraryBig,
 } from "lucide-react";
 import DashboardLayout, { NavItem } from "@/app/components/DashboardLayout";
 
@@ -14,10 +15,11 @@ interface LayoutProps {
 }
 
 const superAdminNavItems: NavItem[] = [
-  { name: "Dashboard", icon: LayoutDashboard, href: "/super-admin" },
-  { name: "Institutions", icon: Landmark, href: "/super-admin/institutions" },
-  { name: "Subscriptions", icon: CreditCard, href: "/super-admin/subscriptions" },
-  { name: "Settings", icon: Settings, href: "/super-admin/settings" },
+  { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
+  { name: "Fee", icon: IndianRupee, href: "/dashboard/fee" },
+  { name: "Students", icon: GraduationCap, href: "/dashboard/students" },
+  { name: "Staff", icon: Users, href: "/dashboard/staff" },
+  { name: "Courses", icon: LibraryBig, href: "/dashboard/courses" },
 ];
 
 export default function SuperAdminLayout({ children }: LayoutProps) {

@@ -672,7 +672,7 @@ export default function SubscriptionsPage() {
         filters={filters}
         searchPlaceholder="Search subscription tiers..."
         searchKeys={["name", "billing_cycle"]}
-        itemsPerPage={10}
+        itemsPerPage={5}
         exportFileName="subscription-tiers"
         renderActions={renderActions}
         onRowClick={(item: any) => console.log("Clicked tier:", item)}

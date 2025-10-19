@@ -14,6 +14,7 @@ import { setCookie } from "nookies";
 import toast, { Toaster } from "react-hot-toast";
 import { apiHandler } from "@/lib/api/apiClient";
 import { endpoints } from "@/lib/api/endpoints";
+import { useUser } from "@/contexts/UserContext";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -27,6 +28,7 @@ export default function LoginPage() {
     email: "",
     password: "",
   });
+  const { setUser } = useUser();
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -44,8 +46,6 @@ export default function LoginPage() {
 
     if (!formData.password) {
       newErrors.password = "Password is required";
-    } else if (formData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
     }
 
     setErrors(newErrors);
@@ -92,6 +92,7 @@ export default function LoginPage() {
           path: "/",
           sameSite: "lax",
         });
+        setUser(user);
 
         toast.success("Login successful!");
 
@@ -99,7 +100,7 @@ export default function LoginPage() {
         if (user.role === "super_admin") {
           router.push("/super-admin");
         } else if (user.role === "admin") {
-          router.push("/admin");
+          router.push("/dashboard");
         } else {
           router.push("/teacher");
         }
