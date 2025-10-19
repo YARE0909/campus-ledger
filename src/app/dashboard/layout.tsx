@@ -16,7 +16,7 @@ interface LayoutProps {
 
 const superAdminNavItems: NavItem[] = [
   { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
-  { name: "Fee", icon: IndianRupee, href: "/dashboard/fee" },
+  { name: "Invoice", icon: IndianRupee, href: "/dashboard/invoice" },
   { name: "Students", icon: GraduationCap, href: "/dashboard/students" },
   { name: "Staff", icon: Users, href: "/dashboard/staff" },
   { name: "Courses", icon: LibraryBig, href: "/dashboard/courses" },

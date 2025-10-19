@@ -281,7 +281,7 @@ export default function FeePage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Fee Management</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Invoice Management</h1>
           <p className="text-gray-600 mt-1">
             Track and manage student fee payments
           </p>
