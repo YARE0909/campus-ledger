@@ -14,6 +14,7 @@ import {
   XCircle,
   AlertCircle,
   FileText,
+  BookText,
 } from "lucide-react";
 import DataTable, { Column, Filter } from "@/app/components/DataTable";
 import StatCard from "@/app/components/StatCard";
@@ -21,6 +22,7 @@ import { FormModal } from "@/app/components/Modal";
 import Loader from "@/app/components/Loader";
 import toast from "react-hot-toast";
 import mockData from "@/mock/students.json";
+import coursesData from "@/mock/courses.json";
 
 interface Student {
   id: string;
@@ -48,12 +50,15 @@ export default function StudentsPage() {
     null
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showEnrollModal, setShowEnrollModal] = useState(false);
 
   // Stats
   const [totalStudents, setTotalStudents] = useState(0);
   const [activeStudents, setActiveStudents] = useState(0);
   const [newStudentsThisMonth, setNewStudentsThisMonth] = useState(0);
   const [studentsWithPending, setStudentsWithPending] = useState(0);
+  const [selectedCourse, setSelectedCourse] = useState<string>("");
+  const [selectedBatch, setSelectedBatch] = useState<string>("");
 
   // Form state
   const [formData, setFormData] = useState({
@@ -65,6 +70,30 @@ export default function StudentsPage() {
     guardian_contact: "",
     status: "ACTIVE",
   });
+
+  const handleEnrollStudent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedCourse || !selectedBatch) {
+      toast.error("Please select both course and batch");
+      return;
+    }
+
+    setIsSubmitting(true);
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    console.log("Enrolling student:", {
+      student: selectedStudent,
+      course: selectedCourse,
+      batch: selectedBatch,
+    });
+
+    toast.success("Student enrolled successfully");
+    setShowEnrollModal(false);
+    setSelectedStudent(null);
+    setSelectedCourse("");
+    setSelectedBatch("");
+    setIsSubmitting(false);
+  };
 
   // Mock data function
   const fetchStudents = async () => {
@@ -208,16 +237,40 @@ export default function StudentsPage() {
     },
     {
       key: "enrolled_courses",
-      label: "Courses",
+      label: "Enrollment Status",
       sortable: true,
-      render: (item) => (
-        <div className="flex items-center gap-2">
-          <GraduationCap className="w-4 h-4 text-gray-400" />
-          <span className="font-semibold text-gray-900">
-            {item.enrolled_courses}
+      render: (item) => {
+        const statusConfig = {
+          ENROLLED: {
+            bg: "bg-green-100",
+            text: "text-green-800",
+            icon: CheckCircle,
+            title: "ENROLLED",
+          },
+          NOT_ENROLLED: {
+            bg: "bg-gray-100",
+            text: "text-gray-800",
+            icon: XCircle,
+            title: "NOT ENROLLED",
+          },
+        };
+        const config =
+          item.enrolled_courses === 0
+            ? statusConfig.NOT_ENROLLED
+            : statusConfig.ENROLLED;
+        const Icon = config.icon;
+
+        return (
+          <span
+            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${config.bg} ${config.text}`}
+          >
+            <Icon className="w-3 h-3" />
+            {item.enrolled_courses === 0
+              ? statusConfig.NOT_ENROLLED.title
+              : statusConfig.ENROLLED.title}
           </span>
-        </div>
-      ),
+        );
+      },
       exportRender: (item) => item.enrolled_courses,
     },
     {
@@ -320,6 +373,15 @@ export default function StudentsPage() {
       {selectedStudentId === item.id && (
         <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
           <button
+            onClick={() => setShowEnrollModal(true)}
+            className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition"
+          >
+            <BookText className="w-4 h-4" />
+            {item.enrolled_courses === 0
+              ? "Enroll Student"
+              : "Unenroll Student"}
+          </button>
+          <button
             onClick={() => openViewModal(item)}
             className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition"
           >
@@ -413,18 +475,6 @@ export default function StudentsPage() {
           color="red"
         />
       </div>
-
-      {/* Alert for pending fees */}
-      {studentsWithPending > 0 && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center gap-3">
-          <AlertCircle className="w-5 h-5 text-amber-600" />
-          <p className="text-amber-800 font-medium">
-            {studentsWithPending} student
-            {studentsWithPending > 1 ? "s have" : " has"} pending fee payments
-          </p>
-        </div>
-      )}
-
       {/* DataTable */}
       <DataTable
         data={students}
@@ -809,6 +859,67 @@ export default function StudentsPage() {
                 </div>
               </div>
             </div>
+          </div>
+        </FormModal>
+      )}
+      {showEnrollModal && (
+        <FormModal
+          isOpen={showEnrollModal}
+          onClose={() => {
+            setShowEnrollModal(false);
+            setSelectedStudent(null);
+            setSelectedCourse("");
+            setSelectedBatch("");
+          }}
+          title="Enroll Student"
+          onSubmit={handleEnrollStudent}
+          submitLabel="Enroll"
+          isSubmitting={isSubmitting}
+          size="md"
+        >
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Select Course *
+              </label>
+              <select
+                value={selectedCourse}
+                onChange={(e) => {
+                  setSelectedCourse(e.target.value);
+                  setSelectedBatch("");
+                }}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                required
+              >
+                <option value="">Select a course</option>
+                {coursesData.map((course) => (
+                  <option key={course.id} value={course.id}>
+                    {course.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {selectedCourse && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Select Batch *
+                </label>
+                <select
+                  value={selectedBatch}
+                  onChange={(e) => setSelectedBatch(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  required
+                >
+                  <option value="">Select a batch</option>
+                  {coursesData.find((c) => c.id === selectedCourse)?.batches?.map((batch, idx) => (
+                      <option key={idx} value={batch}>
+                        {batch}
+                      </option>
+                    ))}
+                </select>
+              </div>
+            )}
           </div>
         </FormModal>
       )}

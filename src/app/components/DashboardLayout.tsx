@@ -155,7 +155,7 @@ export default function DashboardLayout({
           <div className="flex items-center gap-5">
             {/* Notifications */}
             <div>
-              <h1 className="text-3xl font-bold">Zarava</h1>
+              <h1 className="text-3xl font-bold">Artvile</h1>
             </div>
             {showNotifications && (
               <button

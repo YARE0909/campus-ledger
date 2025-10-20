@@ -422,19 +422,15 @@ export default function CoursesPage() {
           </p>
         </div>
         <div className="flex gap-3">
-          <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">
-            <Upload className="w-5 h-5" />
-            Import
-          </button>
           <button
             onClick={() => {
               resetForm();
               setShowAddModal(true);
             }}
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition cursor-pointer"
+            title="Add Course"
           >
             <Plus className="w-5 h-5" />
-            Add Course
           </button>
         </div>
       </div>

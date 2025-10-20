@@ -12,7 +12,9 @@
     "enrolled_students": 85,
     "max_capacity": 100,
     "status": "ACTIVE",
-    "created_at": "2025-09-15"
+    "created_at": "2025-09-15",
+    "batches": ["Batch A", "Batch B"]
+
   },
   {
     "id": "2",
@@ -27,7 +29,9 @@
     "enrolled_students": 72,
     "max_capacity": 80,
     "status": "ACTIVE",
-    "created_at": "2025-09-10"
+    "created_at": "2025-09-10",
+    "batches": ["Batch A", "Batch B"]
+
   },
   {
     "id": "3",
@@ -42,7 +46,9 @@
     "enrolled_students": 68,
     "max_capacity": 75,
     "status": "UPCOMING",
-    "created_at": "2025-09-20"
+    "created_at": "2025-09-20",
+    "batches": ["Batch A", "Batch B"]
+
   },
   {
     "id": "4",
@@ -57,7 +63,9 @@
     "enrolled_students": 55,
     "max_capacity": 70,
     "status": "ACTIVE",
-    "created_at": "2025-08-25"
+    "created_at": "2025-08-25",
+    "batches": ["Batch A", "Batch B"]
+
   },
   {
     "id": "5",
@@ -72,7 +80,9 @@
     "enrolled_students": 95,
     "max_capacity": 100,
     "status": "COMPLETED",
-    "created_at": "2025-07-15"
+    "created_at": "2025-07-15",
+    "batches": ["Batch A", "Batch B"]
+
   },
   {
     "id": "6",
@@ -87,7 +97,8 @@
     "enrolled_students": 78,
     "max_capacity": 90,
     "status": "ACTIVE",
-    "created_at": "2025-09-05"
+    "created_at": "2025-09-05",
+    "batches": ["Batch A", "Batch B"]
   },
   {
     "id": "7",
@@ -102,7 +113,8 @@
     "enrolled_students": 0,
     "max_capacity": 60,
     "status": "UPCOMING",
-    "created_at": "2025-10-01"
+    "created_at": "2025-10-01",
+    "batches": ["Batch A", "Batch B"]
   },
   {
     "id": "8",
@@ -117,6 +129,7 @@
     "enrolled_students": 42,
     "max_capacity": 50,
     "status": "UPCOMING",
-    "created_at": "2025-09-28"
+    "created_at": "2025-09-28",
+    "batches": ["Batch A", "Batch B"]
   }
 ]
