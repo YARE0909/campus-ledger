@@ -16,10 +16,10 @@ import {
   FileText,
   BookText,
 } from "lucide-react";
-import DataTable, { Column, Filter } from "@/app/components/DataTable";
-import StatCard from "@/app/components/StatCard";
-import { FormModal } from "@/app/components/Modal";
-import Loader from "@/app/components/Loader";
+import DataTable, { Column, Filter } from "@/components/DataTable";
+import StatCard from "@/components/StatCard";
+import { FormModal } from "@/components/Modal";
+import Loader from "@/components/Loader";
 import toast from "react-hot-toast";
 import mockData from "@/mock/students.json";
 import coursesData from "@/mock/courses.json";

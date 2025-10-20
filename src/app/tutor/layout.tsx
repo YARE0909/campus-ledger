@@ -7,7 +7,7 @@ import {
   ListChecks,
   FileText,
 } from "lucide-react";
-import DashboardLayout, { NavItem } from "@/app/components/DashboardLayout";
+import DashboardLayout, { NavItem } from "@/components/DashboardLayout";
 
 interface LayoutProps {
   children: React.ReactNode;

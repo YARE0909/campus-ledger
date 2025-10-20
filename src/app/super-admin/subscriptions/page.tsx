@@ -17,10 +17,10 @@ import {
   PieChart as PieChartIcon,
   BarChart3,
 } from "lucide-react";
-import DataTable, { Column, Filter } from "@/app/components/DataTable";
-import StatCard from "@/app/components/StatCard";
+import DataTable, { Column, Filter } from "@/components/DataTable";
+import StatCard from "@/components/StatCard";
 import TierForm from "./components/TierForm";
-import { FormModal } from "@/app/components/Modal";
+import { FormModal } from "@/components/Modal";
 import {
   ResponsiveContainer,
   PieChart,
@@ -43,7 +43,7 @@ import {
   CreateSubscriptionTierRequest,
   SubscriptionTierAnalytics,
 } from "@/lib/api/types";
-import Loader from "@/app/components/Loader";
+import Loader from "@/components/Loader";
 
 interface SubscriptionTier {
   id: number;

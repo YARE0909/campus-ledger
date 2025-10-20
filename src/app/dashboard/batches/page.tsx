@@ -15,9 +15,9 @@ import {
   UserCheck,
   MoreVertical,
 } from "lucide-react";
-import DataTable, { Column, Filter } from "@/app/components/DataTable";
-import Modal, { FormModal } from "@/app/components/Modal";
-import StatCard from "@/app/components/StatCard";
+import DataTable, { Column, Filter } from "@/components/DataTable";
+import Modal, { FormModal } from "@/components/Modal";
+import StatCard from "@/components/StatCard";
 
 // Types
 interface Batch {

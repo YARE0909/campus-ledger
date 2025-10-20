@@ -29,8 +29,8 @@ import {
   CartesianGrid,
   Legend,
 } from "recharts";
-import StatCard from "../components/StatCard";
-import Loader from "../components/Loader";
+import StatCard from "../../components/StatCard";
+import Loader from "../../components/Loader";
 
 type EnrollmentStatus = { name: string; value: number; color: string };
 type MonthlyRevenue = { month: string; revenue: number };

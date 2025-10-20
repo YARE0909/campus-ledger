@@ -18,15 +18,15 @@ import {
   CheckCircle,
   AlertCircle,
 } from "lucide-react";
-import DataTable, { Column, Filter } from "@/app/components/DataTable";
-import StatCard from "@/app/components/StatCard";
-import { FormModal } from "@/app/components/Modal";
+import DataTable, { Column, Filter } from "@/components/DataTable";
+import StatCard from "@/components/StatCard";
+import { FormModal } from "@/components/Modal";
 import InstitutionForm from "./components/InstitutionForm";
 import toast from "react-hot-toast";
 import { endpoints } from "@/lib/api/endpoints";
 import { apiHandler } from "@/lib/api/apiClient";
 import { CreateInstitutionRequest, Institution } from "@/lib/api/types";
-import Loader from "@/app/components/Loader";
+import Loader from "@/components/Loader";
 
 export default function InstitutionsPage() {
   const [selectedInstitution, setSelectedInstitution] = useState<string | null>(

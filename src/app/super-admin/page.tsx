@@ -25,10 +25,10 @@ import {
   Line,
   CartesianGrid,
 } from "recharts";
-import StatCard from "../components/StatCard";
+import StatCard from "../../components/StatCard";
 import { apiHandler } from "@/lib/api/apiClient";
 import { endpoints } from "@/lib/api/endpoints";
-import Loader from "../components/Loader";
+import Loader from "../../components/Loader";
 
 type EnrollmentStatus = { name: string; value: number; color: string };
 type InstitutionByTier = { tier: string; count: number };
