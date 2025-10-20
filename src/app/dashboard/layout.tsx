@@ -28,7 +28,7 @@ export default function SuperAdminLayout({ children }: LayoutProps) {
   return (
     <DashboardLayout
       navItems={superAdminNavItems}
-      appName="Acadify"
+      companyName="Artvile"
       showNotifications={true}
     >
       {children}

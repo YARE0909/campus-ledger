@@ -33,6 +33,7 @@ export function middleware(req: NextRequest) {
   // Define protected routes
   const isProtectedRoute =
     pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/tutor") ||
     pathname.startsWith("/super-admin");
 
   // 1. Block unauthenticated access to any protected route - REDIRECT TO LOGIN
@@ -50,7 +51,7 @@ export function middleware(req: NextRequest) {
     if (payload?.role === "admin") {
       return NextResponse.redirect(new URL("/dashboard", req.url));
     }
-    return NextResponse.redirect(new URL("/dashboard", req.url));
+    return NextResponse.redirect(new URL("/tutor", req.url));
   }
 
   // 3. Role-based route protection for authenticated users
@@ -72,11 +73,25 @@ export function middleware(req: NextRequest) {
     }
 
     // Non-super-admin trying to access super-admin routes
-    if (payload.role !== "super_admin" && pathname.startsWith("/super-admin")) {
+    if (payload.role === "admin" && pathname.startsWith("/super-admin")) {
       console.log(
         "Non-super-admin accessing super-admin routes, redirecting to /dashboard"
       );
       return NextResponse.redirect(new URL("/dashboard", req.url));
+    }
+
+    if (payload.role === "tutor" && pathname.startsWith("/super-admin")) {
+      console.log(
+        "Non-super-admin accessing super-admin routes, redirecting to /dashboard"
+      );
+      return NextResponse.redirect(new URL("/tutor", req.url));
+    }
+
+    if (payload.role === "tutor" && pathname.startsWith("/dashboard")) {
+      console.log(
+        "Non-super-admin accessing super-admin routes, redirecting to /dashboard"
+      );
+      return NextResponse.redirect(new URL("/tutor", req.url));
     }
   }
 
@@ -84,10 +99,5 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    "/",
-    "/login",
-    "/dashboard/:path*",
-    "/super-admin/:path*",
-  ],
+  matcher: ["/", "/login", "/dashboard/:path*", "/super-admin/:path*"],
 };

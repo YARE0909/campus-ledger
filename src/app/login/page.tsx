@@ -102,7 +102,7 @@ export default function LoginPage() {
         } else if (user.role === "admin") {
           router.push("/dashboard");
         } else {
-          router.push("/teacher");
+          router.push("/tutor");
         }
       }
     } catch (error) {

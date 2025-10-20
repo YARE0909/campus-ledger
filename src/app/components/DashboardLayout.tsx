@@ -16,14 +16,14 @@ export interface NavItem {
 interface DashboardLayoutProps {
   children: React.ReactNode;
   navItems: NavItem[];
-  appName?: string;
+  companyName?: string;
   showNotifications?: boolean;
 }
 
 export default function DashboardLayout({
   children,
   navItems,
-  appName = "Acadify",
+  companyName,
   showNotifications = true,
 }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -78,7 +78,7 @@ export default function DashboardLayout({
         <div className="flex items-center justify-center gap-24 h-16 px-4 border-b border-gray-200 flex-shrink-0">
           {sidebarOpen && (
             <h1 className="text-2xl font-bold text-indigo-700 transition-opacity duration-300">
-              {appName}
+              Acadify
             </h1>
           )}
           <button
@@ -154,9 +154,11 @@ export default function DashboardLayout({
 
           <div className="flex items-center gap-5">
             {/* Notifications */}
-            <div>
-              <h1 className="text-3xl font-bold">Artvile</h1>
-            </div>
+            {companyName && (
+              <div>
+                <h1 className="text-3xl font-bold">{companyName}</h1>
+              </div>
+            )}
             {showNotifications && (
               <button
                 className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors"
@@ -176,7 +178,7 @@ export default function DashboardLayout({
 
         {/* Footer - Fixed at bottom */}
         <footer className="h-12 bg-white border-t border-gray-200 flex items-center justify-center text-gray-500 text-xs flex-shrink-0">
-          © 2025 {appName}. All rights reserved.
+          © 2025 Acadify. All rights reserved.
         </footer>
       </div>
     </div>
