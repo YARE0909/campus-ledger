@@ -152,8 +152,11 @@ export default function DashboardLayout({
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-5">
             {/* Notifications */}
+            <div>
+              <h1 className="text-3xl font-bold">Zarava</h1>
+            </div>
             {showNotifications && (
               <button
                 className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors"

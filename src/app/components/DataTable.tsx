@@ -1,7 +1,7 @@
 // components/DataTable.tsx
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import {
   Search,
   Download,
@@ -9,6 +9,8 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  Calendar,
+  X,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
@@ -19,7 +21,7 @@ export interface Column<T> {
   label: string;
   sortable?: boolean;
   render?: (item: T) => React.ReactNode;
-  exportRender?: (item: T) => string | number; // For export formatting
+  exportRender?: (item: T) => string | number;
 }
 
 export interface Filter {
@@ -28,12 +30,18 @@ export interface Filter {
   options: { value: string; label: string }[];
 }
 
+export interface DateFilter {
+  key: string;
+  label: string;
+}
+
 interface DataTableProps<T> {
   data: T[];
   columns: Column<T>[];
   filters?: Filter[];
+  dateFilter?: DateFilter;
   searchPlaceholder?: string;
-  searchKeys?: string[]; // Keys to search in
+  searchKeys?: string[];
   itemsPerPage?: number;
   exportFileName?: string;
   onRowClick?: (item: T) => void;
@@ -44,6 +52,7 @@ export default function DataTable<T extends Record<string, any>>({
   data,
   columns,
   filters = [],
+  dateFilter,
   searchPlaceholder = 'Search...',
   searchKeys = [],
   itemsPerPage = 5,
@@ -53,12 +62,30 @@ export default function DataTable<T extends Record<string, any>>({
 }: DataTableProps<T>) {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
+  const [dateRange, setDateRange] = useState<{ start: string; end: string }>({
+    start: '',
+    end: '',
+  });
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(itemsPerPage);
   const [sortConfig, setSortConfig] = useState<{
     key: string;
     direction: 'asc' | 'desc';
   } | null>(null);
+
+  const datePickerRef = useRef<HTMLDivElement>(null);
+
+  // Close date picker when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (datePickerRef.current && !datePickerRef.current.contains(event.target as Node)) {
+        setShowDatePicker(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Filter and search logic
   const filteredData = useMemo(() => {
@@ -70,6 +97,24 @@ export default function DataTable<T extends Record<string, any>>({
         filtered = filtered.filter((item) => String(item[key]) === value);
       }
     });
+
+    // Apply date range filter
+    if (dateFilter && (dateRange.start || dateRange.end)) {
+      filtered = filtered.filter((item) => {
+        const itemDate = new Date(item[dateFilter.key]);
+        const startDate = dateRange.start ? new Date(dateRange.start) : null;
+        const endDate = dateRange.end ? new Date(dateRange.end) : null;
+
+        if (startDate && endDate) {
+          return itemDate >= startDate && itemDate <= endDate;
+        } else if (startDate) {
+          return itemDate >= startDate;
+        } else if (endDate) {
+          return itemDate <= endDate;
+        }
+        return true;
+      });
+    }
 
     // Apply search
     if (searchQuery) {
@@ -97,7 +142,7 @@ export default function DataTable<T extends Record<string, any>>({
     }
 
     return filtered;
-  }, [data, activeFilters, searchQuery, sortConfig, searchKeys]);
+  }, [data, activeFilters, dateRange, searchQuery, sortConfig, searchKeys, dateFilter]);
 
   // Pagination logic
   const totalPages = Math.ceil(filteredData.length / rowsPerPage);
@@ -122,9 +167,44 @@ export default function DataTable<T extends Record<string, any>>({
     setCurrentPage(1);
   };
 
+  const handleDateRangeChange = (type: 'start' | 'end', value: string) => {
+    setDateRange((prev) => ({ ...prev, [type]: value }));
+    setCurrentPage(1);
+  };
+
+  const clearDateFilter = () => {
+    setDateRange({ start: '', end: '' });
+    setCurrentPage(1);
+  };
+
   const handleRowsPerPageChange = (value: number) => {
     setRowsPerPage(value);
     setCurrentPage(1);
+  };
+
+  const formatDateRange = () => {
+    if (dateRange.start && dateRange.end) {
+      return `${new Date(dateRange.start).toLocaleDateString('en-IN', { 
+        day: '2-digit', 
+        month: 'short' 
+      })} - ${new Date(dateRange.end).toLocaleDateString('en-IN', { 
+        day: '2-digit', 
+        month: 'short' 
+      })}`;
+    } else if (dateRange.start) {
+      return `From ${new Date(dateRange.start).toLocaleDateString('en-IN', { 
+        day: '2-digit', 
+        month: 'short',
+        year: 'numeric'
+      })}`;
+    } else if (dateRange.end) {
+      return `Until ${new Date(dateRange.end).toLocaleDateString('en-IN', { 
+        day: '2-digit', 
+        month: 'short',
+        year: 'numeric'
+      })}`;
+    }
+    return dateFilter?.label || 'Filter by Date';
   };
 
   // Export to Excel
@@ -196,7 +276,7 @@ export default function DataTable<T extends Record<string, any>>({
               key={filter.key}
               value={activeFilters[filter.key] || 'all'}
               onChange={(e) => handleFilterChange(filter.key, e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
             >
               <option value="all">{filter.label}</option>
               {filter.options.map((option) => (
@@ -207,16 +287,83 @@ export default function DataTable<T extends Record<string, any>>({
             </select>
           ))}
 
+          {/* Date Filter Dropdown */}
+          {dateFilter && (
+            <div className="relative" ref={datePickerRef}>
+              <button
+                onClick={() => setShowDatePicker(!showDatePicker)}
+                className={`flex items-center gap-2 px-4 py-2 border rounded-lg transition ${
+                  dateRange.start || dateRange.end
+                    ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                    : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                <Calendar className="w-5 h-5" />
+                <span className="whitespace-nowrap">{formatDateRange()}</span>
+                {(dateRange.start || dateRange.end) && (
+                  <X
+                    className="w-4 h-4 ml-1"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      clearDateFilter();
+                    }}
+                  />
+                )}
+              </button>
+
+              {showDatePicker && (
+                <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-10 p-4">
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Start Date
+                      </label>
+                      <input
+                        type="date"
+                        value={dateRange.start}
+                        onChange={(e) => handleDateRangeChange('start', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        End Date
+                      </label>
+                      <input
+                        type="date"
+                        value={dateRange.end}
+                        onChange={(e) => handleDateRangeChange('end', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                    </div>
+                    <div className="flex gap-2 pt-2 border-t">
+                      <button
+                        onClick={clearDateFilter}
+                        className="flex-1 px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition"
+                      >
+                        Clear
+                      </button>
+                      <button
+                        onClick={() => setShowDatePicker(false)}
+                        className="flex-1 px-4 py-2 text-sm text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition"
+                      >
+                        Apply
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Export Buttons */}
-          <div className="relative">
-            <button
-              onClick={exportToExcel}
-              className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
-            >
-              <Download className="w-5 h-5 text-gray-600" />
-              <span className="text-gray-700">Excel</span>
-            </button>
-          </div>
+          <button
+            onClick={exportToExcel}
+            className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+          >
+            <Download className="w-5 h-5 text-gray-600" />
+            <span className="text-gray-700">Excel</span>
+          </button>
           <button
             onClick={exportToPDF}
             className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"

@@ -281,7 +281,9 @@ export default function FeePage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Invoice Management</h1>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Invoice Management
+          </h1>
           <p className="text-gray-600 mt-1">
             Track and manage student fee payments
           </p>
@@ -322,26 +324,18 @@ export default function FeePage() {
           color="red"
         />
       </div>
-
-      {/* Alert for overdue */}
-      {overdueInvoices > 0 && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3">
-          <AlertCircle className="w-5 h-5 text-red-600" />
-          <p className="text-red-800 font-medium">
-            {overdueInvoices} invoice{overdueInvoices > 1 ? "s are" : " is"}{" "}
-            overdue. Please follow up with students.
-          </p>
-        </div>
-      )}
-
       {/* DataTable */}
       <DataTable
         data={feeRecords}
         columns={columns}
         filters={filters}
+        dateFilter={{
+          key: "due_date", // or "paid_date" depending on what you want to filter
+          label: "Filter by Due Date",
+        }}
         searchPlaceholder="Search by student name, invoice no..."
         searchKeys={["student_name", "invoice_number", "student_email"]}
-        itemsPerPage={5}
+        itemsPerPage={25}
         exportFileName="fee-records"
         renderActions={renderActions}
       />
