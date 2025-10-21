@@ -212,40 +212,44 @@ export default function AttendancePage() {
                     </div>
                   </div>
 
-                  <div className="flex justify-between gap-3">
-                    <button
-                      onClick={() => markAttendance(student.id, "present")}
-                      className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-bold cursor-pointer transition ${
-                        student.status === "present"
-                          ? "text-white bg-green-500"
-                          : "text-green-700 bg-gray-100"
-                      }`}
-                    >
-                      <CheckCircle className="w-4 h-4" />
-                      Present
-                    </button>
-                    <button
-                      onClick={() => markAttendance(student.id, "absent")}
-                      className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-bold cursor-pointer transition ${
-                        student.status === "absent"
-                          ? "text-white bg-red-500"
-                          : "text-red-700 bg-gray-100"
-                      }`}
-                    >
-                      <XCircle className="w-4 h-4" />
-                      Absent
-                    </button>
-                    <button
-                      onClick={() => markAttendance(student.id, "na")}
-                      className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-bold cursor-pointer transition ${
-                        student.status === "na"
-                          ? "text-white bg-orange-500"
-                          : "text-orange-700 bg-gray-100"
-                      }`}
-                    >
-                      <XCircle className="w-4 h-4" />
-                      N/A
-                    </button>
+                  <div className="flex flex-col justify-between gap-3">
+                    <div className="flex gap-4 w-full">
+                      <button
+                        onClick={() => markAttendance(student.id, "present")}
+                        className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-bold cursor-pointer transition ${
+                          student.status === "present"
+                            ? "text-white bg-green-500"
+                            : "text-green-700 bg-gray-100"
+                        }`}
+                      >
+                        <CheckCircle className="w-4 h-4" />
+                        Present
+                      </button>
+                      <button
+                        onClick={() => markAttendance(student.id, "absent")}
+                        className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-bold cursor-pointer transition ${
+                          student.status === "absent"
+                            ? "text-white bg-red-500"
+                            : "text-red-700 bg-gray-100"
+                        }`}
+                      >
+                        <XCircle className="w-4 h-4" />
+                        Absent
+                      </button>
+                    </div>
+                    <div>
+                      <button
+                        onClick={() => markAttendance(student.id, "na")}
+                        className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-bold cursor-pointer transition ${
+                          student.status === "na"
+                            ? "text-white bg-orange-500"
+                            : "text-orange-700 bg-gray-100"
+                        }`}
+                      >
+                        <XCircle className="w-4 h-4" />
+                        N/A
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
