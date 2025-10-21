@@ -5,7 +5,7 @@ import { HardHat } from 'lucide-react';
 
 export default function UnderConstruction() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[500px] space-y-6">
+    <div className="flex flex-col items-center justify-center min-h-[500px] space-y-4">
       {/* Icon with background effect */}
       <div className="relative">
         <div className="absolute inset-0 bg-indigo-100 rounded-full blur-xl opacity-50"></div>

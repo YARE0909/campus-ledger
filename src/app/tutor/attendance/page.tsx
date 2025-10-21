@@ -88,14 +88,18 @@ export default function AttendancePage() {
   const selectedBatch = mockBatches.find((b) => b.id === selectedBatchId);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <Toaster position="top-right" />
 
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div className="flex items-center gap-2 text-gray-700">
-          <Calendar className="w-6 h-6 text-indigo-600" />
-          <h1 className="text-2xl font-bold">Attendance</h1>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Attendance
+          </h1>
+          <p className="text-gray-600 mt-1">
+            Mark student attendance.
+          </p>
         </div>
       </div>
 

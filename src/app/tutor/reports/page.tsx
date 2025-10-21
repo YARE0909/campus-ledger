@@ -108,7 +108,7 @@ export default function ReportsPage() {
     { key: "batch", label: "Batch", sortable: true },
     { key: "attendance", label: "Attendance (%)", sortable: true },
     { key: "testsTaken", label: "Tests Taken", sortable: true },
-    { key: "avgScore", label: "Average Score", sortable: true },
+    { key: "avgScore", label: "Avg. Score", sortable: true },
     { key: "lastActive", label: "Last Active", sortable: true },
   ];
 
@@ -161,9 +161,17 @@ export default function ReportsPage() {
   );
 
   return (
-    <div className="p-6 space-y-6">
-      <Toaster position="top-right" />
-
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Reports
+          </h1>
+          <p className="text-gray-600 mt-1">
+              Student Reports
+          </p>
+        </div>
+      </div>
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
@@ -274,7 +282,7 @@ export default function ReportsPage() {
               <strong>Tests Taken:</strong> {selectedStudent.testsTaken}
             </p>
             <p>
-              <strong>Average Score:</strong> {selectedStudent.avgScore}
+              <strong>Avg. Score:</strong> {selectedStudent.avgScore}
             </p>
             <p>
               <strong>Last Active:</strong> {selectedStudent.lastActive}

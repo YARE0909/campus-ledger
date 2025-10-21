@@ -14,6 +14,7 @@ import {
   UserPlus,
   UserCheck,
   MoreVertical,
+  User,
 } from "lucide-react";
 import DataTable, { Column, Filter } from "@/components/DataTable";
 import Modal, { FormModal } from "@/components/Modal";
@@ -656,7 +657,7 @@ export default function BatchManagementPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <div>
@@ -683,21 +684,21 @@ export default function BatchManagementPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-6">
         <StatCard
           icon={BookOpen}
-          label="Total Batches"
+          label="Active Batches"
           value={stats.totalBatches}
           color="blue"
-        />
-        <StatCard
-          icon={Calendar}
-          label="Active Batches"
-          value={stats.activeBatches}
-          color="green"
         />
         <StatCard
           icon={Users}
           label="Total Students"
           value={stats.totalStudents}
           color="indigo"
+        />
+        <StatCard
+          icon={User}
+          label="Avg. Batch Students"
+          value={"20"}
+          color="green"
         />
         <StatCard
           icon={Users}
@@ -707,7 +708,7 @@ export default function BatchManagementPage() {
         />
         <StatCard
           icon={GraduationCap}
-          label="Total Teachers"
+          label="Unassigned Teachers"
           value={stats.totalTeachers}
           color="red"
         />

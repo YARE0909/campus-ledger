@@ -185,7 +185,7 @@ export default function TeacherDashboard() {
   if (loading) return <Loader />;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -214,7 +214,7 @@ export default function TeacherDashboard() {
       {/* Main grid: charts + upcoming */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Charts column (2/3 width) */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-4">
           {/* Attendance Trend */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between mb-4">
@@ -268,7 +268,7 @@ export default function TeacherDashboard() {
         </div>
 
         {/* Right column: upcoming classes + active batches mini */}
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Upcoming classes */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between mb-4">
@@ -347,7 +347,7 @@ export default function TeacherDashboard() {
             <p className="text-2xl font-bold text-gray-900">{Math.round(totalStudents / Math.max(1, totalBatches))}:1</p>
           </div>
           <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 text-center">
-            <p className="text-sm text-gray-600">Average Class Size</p>
+            <p className="text-sm text-gray-600">Avg. Class Size</p>
             <p className="text-2xl font-bold text-gray-900">{Math.round(totalStudents / Math.max(1, totalBatches))}</p>
           </div>
           <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 text-center">

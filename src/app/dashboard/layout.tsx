@@ -8,6 +8,7 @@ import {
   GraduationCap,
   LibraryBig,
   Clock4,
+  Split,
 } from "lucide-react";
 import DashboardLayout, { NavItem } from "@/components/DashboardLayout";
 
@@ -17,11 +18,12 @@ interface LayoutProps {
 
 const superAdminNavItems: NavItem[] = [
   { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
-  { name: "Invoice", icon: IndianRupee, href: "/dashboard/invoice" },
-  { name: "Students", icon: GraduationCap, href: "/dashboard/students" },
-  { name: "Staff", icon: Users, href: "/dashboard/staff" },
-  { name: "Courses", icon: LibraryBig, href: "/dashboard/courses" },
   { name: "Batches", icon: Clock4, href: "/dashboard/batches" },
+  { name: "Branches", icon: Split, href: "/dashboard/branches" },
+  { name: "Courses", icon: LibraryBig, href: "/dashboard/courses" },
+  { name: "Invoice", icon: IndianRupee, href: "/dashboard/invoice" },
+  { name: "Staff", icon: Users, href: "/dashboard/staff" },
+  { name: "Students", icon: GraduationCap, href: "/dashboard/students" },
 ];
 
 export default function SuperAdminLayout({ children }: LayoutProps) {

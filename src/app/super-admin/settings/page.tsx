@@ -52,7 +52,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
@@ -120,7 +120,7 @@ function ProfileSettings() {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div>
         <h2 className="text-xl font-semibold text-gray-900 mb-1">Profile Information</h2>
         <p className="text-sm text-gray-600">Update your personal information and credentials</p>
@@ -240,7 +240,7 @@ function ProfileSettings() {
 // Platform Settings Component
 function PlatformSettings() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div>
         <h2 className="text-xl font-semibold text-gray-900 mb-1">Platform Configuration</h2>
         <p className="text-sm text-gray-600">Customize your platform branding and appearance</p>
@@ -336,7 +336,7 @@ function PlatformSettings() {
 // Notification Settings Component
 function NotificationSettings() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div>
         <h2 className="text-xl font-semibold text-gray-900 mb-1">Notification Preferences</h2>
         <p className="text-sm text-gray-600">Manage how and when you receive notifications</p>
@@ -423,7 +423,7 @@ function NotificationSettings() {
 // Billing Settings Component
 function BillingSettings() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div>
         <h2 className="text-xl font-semibold text-gray-900 mb-1">Billing Configuration</h2>
         <p className="text-sm text-gray-600">Configure billing automation and payment settings</p>
@@ -546,7 +546,7 @@ function BillingSettings() {
 // Security Settings Component
 function SecuritySettings() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div>
         <h2 className="text-xl font-semibold text-gray-900 mb-1">Security Settings</h2>
         <p className="text-sm text-gray-600">Manage security and access control settings</p>
@@ -647,7 +647,7 @@ function SecuritySettings() {
 // Email Settings Component
 function EmailSettings() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div>
         <h2 className="text-xl font-semibold text-gray-900 mb-1">Email & SMTP Configuration</h2>
         <p className="text-sm text-gray-600">Configure email server settings</p>
@@ -748,7 +748,7 @@ function EmailSettings() {
 // Invoice Settings Component
 function InvoiceSettings() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div>
         <h2 className="text-xl font-semibold text-gray-900 mb-1">Invoice Templates</h2>
         <p className="text-sm text-gray-600">Customize invoice appearance and details</p>
@@ -842,7 +842,7 @@ function InvoiceSettings() {
 // System Settings Component
 function SystemSettings() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div>
         <h2 className="text-xl font-semibold text-gray-900 mb-1">System Configuration</h2>
         <p className="text-sm text-gray-600">Manage system maintenance and backups</p>

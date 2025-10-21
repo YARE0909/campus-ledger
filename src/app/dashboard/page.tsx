@@ -13,6 +13,8 @@ import {
   PieChart as PieChartIcon,
   BarChart3,
   DollarSign,
+  BanknoteArrowDown,
+  BanknoteX,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -98,12 +100,12 @@ export default function AdminDashboard() {
 
     // Mock attendance data
     setAttendanceData([
-      { month: "Jan", present: 310, absent: 32 },
-      { month: "Feb", present: 298, absent: 44 },
-      { month: "Mar", present: 325, absent: 17 },
-      { month: "Apr", present: 315, absent: 27 },
-      { month: "May", present: 305, absent: 37 },
-      { month: "Jun", present: 330, absent: 12 },
+      { month: "Jan", present: 75, absent: 25 },
+      { month: "Feb", present: 50, absent: 50 },
+      { month: "Mar", present: 60, absent: 40 },
+      { month: "Apr", present: 70, absent: 30 },
+      { month: "May", present: 90, absent: 10 },
+      { month: "Jun", present: 80, absent: 20 },
     ]);
 
     setLoading(false);
@@ -142,17 +144,81 @@ export default function AdminDashboard() {
   const hasAttendanceData = attendanceData.length > 0;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4">
       {/* Header Section */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600 mt-2">
-          Welcome back! Here's what's happening in your institution.
-        </p>
-      </div>
+      <div className="w-full flex justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+          <p className="text-gray-600 mt-2">
+            Welcome back! Here's what's happening in your institution.
+          </p>
+        </div>
 
+        <div>
+          <select className="bg-white rounded-md px-6 py-2 border border-gray-300 shadow-md font-bold">
+            <option value="1">This Month</option>
+            <option value="2">This Year</option>
+            <option value="3">Custom</option>
+          </select>
+        </div>
+      </div>
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+        <StatCard
+          icon={IndianRupee}
+          label="Revenue"
+          value={`₹1,00,000`}
+          color="indigo"
+        />
+        <StatCard
+          icon={IndianRupee}
+          label="Revenue Earned"
+          value={`₹50,000`}
+          color="green"
+        />
+
+        <StatCard
+          icon={IndianRupee}
+          label="Revenue Due"
+          value={`₹50,000`}
+          color="orange"
+        />
+        <StatCard
+          icon={BanknoteArrowDown}
+          label="Invoices"
+          value={"20"}
+          color="indigo"
+        />
+        <StatCard
+          icon={BanknoteArrowDown}
+          label="Pending Invoices"
+          value={"10"}
+          color="orange"
+        />
+        <StatCard
+          icon={BanknoteX}
+          label="Overdue Invoices"
+          value={"10"}
+          color="red"
+        />
+        <StatCard
+          icon={BanknoteArrowDown}
+          label="Payments"
+          value={"20"}
+          color="indigo"
+        />
+        <StatCard
+          icon={IndianRupee}
+          label="Pending Payments"
+          value={"20"}
+          color="orange"
+        />
+        <StatCard
+          icon={IndianRupee}
+          label="Overdue Payments"
+          value={"20"}
+          color="red"
+        />
         <StatCard
           icon={Users}
           label="Active Students"
@@ -166,67 +232,15 @@ export default function AdminDashboard() {
           color="purple"
         />
         <StatCard
-          icon={UserCheck}
-          label="Teachers"
-          value={totalTeachers}
-          color="blue"
-        />
-        <StatCard
-          icon={IndianRupee}
-          label="Monthly Revenue"
-          value={`₹${(totalRevenue / 100000).toFixed(1)}L`}
-          color="indigo"
+          icon={Calendar}
+          label="Avg. Attendance"
+          value={`${averageAttendance}%`}
+          color="green"
         />
       </div>
-
-      {/* Secondary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-600 text-sm font-medium mb-1">
-                Average Attendance
-              </p>
-              <p className="text-3xl font-bold text-gray-900">
-                {averageAttendance}%
-              </p>
-            </div>
-            <div className="p-3 bg-gray-100 rounded-lg">
-              <Calendar className="w-8 h-8 text-gray-600" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-600 text-sm font-medium mb-1">
-                Pending Payments
-              </p>
-              <p className="text-3xl font-bold text-gray-900">
-                {overduePayments}
-              </p>
-            </div>
-            <div className="p-3 bg-gray-100 rounded-lg">
-              <DollarSign className="w-8 h-8 text-gray-600" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Alert for overdue payments */}
-      {overduePayments > 0 && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center gap-3">
-          <AlertCircle className="w-5 h-5 text-amber-600" />
-          <p className="text-amber-800 font-medium">
-            {overduePayments} student{overduePayments > 1 ? "s have" : " has"}{" "}
-            overdue payments
-          </p>
-        </div>
-      )}
 
       {/* Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Monthly Revenue Trend */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center gap-2 mb-6">
@@ -348,7 +362,7 @@ export default function AdminDashboard() {
           <div className="flex items-center gap-2 mb-6">
             <BarChart3 className="w-5 h-5 text-indigo-600" />
             <h2 className="text-xl font-semibold text-gray-900">
-              Attendance Trend
+              Attendance Percentage Trend
             </h2>
           </div>
           {hasAttendanceData ? (
@@ -365,8 +379,8 @@ export default function AdminDashboard() {
                   }}
                 />
                 <Legend />
-                <Bar dataKey="present" fill="#10b981" name="Present" />
-                <Bar dataKey="absent" fill="#ef4444" name="Absent" />
+                <Bar dataKey="present" fill="#10b981" name="Present(%)" />
+                <Bar dataKey="absent" fill="#ef4444" name="Absent(%)" />
               </BarChart>
             </ResponsiveContainer>
           ) : (

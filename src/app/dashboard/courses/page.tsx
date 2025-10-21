@@ -24,7 +24,7 @@ import StatCard from "@/components/StatCard";
 import { FormModal } from "@/components/Modal";
 import Loader from "@/components/Loader";
 import toast from "react-hot-toast";
-import mockData from "@/mock/courses.json"
+import mockData from "@/mock/courses.json";
 
 interface Course {
   id: string;
@@ -96,9 +96,7 @@ export default function CoursesPage() {
 
     // Calculate stats
     setTotalCourses(mockData.length);
-    setActiveCourses(
-      mockData.filter((c) => c.status === "ACTIVE").length
-    );
+    setActiveCourses(mockData.filter((c) => c.status === "ACTIVE").length);
     setTotalEnrollments(
       mockData.reduce((sum, c) => sum + c.enrolled_students, 0)
     );
@@ -196,7 +194,9 @@ export default function CoursesPage() {
 
   // View enrolled students
   const viewEnrolledStudents = (course: Course) => {
-    toast.success(`Viewing ${course.enrolled_students} students in ${course.name}`);
+    toast.success(
+      `Viewing ${course.enrolled_students} students in ${course.name}`
+    );
     setSelectedCourseId(null);
   };
 
@@ -274,9 +274,7 @@ export default function CoursesPage() {
                   : "bg-green-600"
               }`}
               style={{
-                width: `${
-                  (item.enrolled_students / item.max_capacity) * 100
-                }%`,
+                width: `${(item.enrolled_students / item.max_capacity) * 100}%`,
               }}
             />
           </div>
@@ -388,12 +386,6 @@ export default function CoursesPage() {
             View Students
           </button>
           <button
-            className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition"
-          >
-            <FileText className="w-4 h-4" />
-            View Syllabus
-          </button>
-          <button
             onClick={() => handleDeleteCourse(item.id)}
             className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition border-t border-gray-100"
           >
@@ -410,7 +402,7 @@ export default function CoursesPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -438,16 +430,16 @@ export default function CoursesPage() {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
-          icon={BookOpen}
-          label="Total Courses"
-          value={totalCourses}
-          color="blue"
-        />
-        <StatCard
           icon={CheckCircle}
           label="Active Courses"
           value={activeCourses}
           color="green"
+        />
+        <StatCard
+          icon={BookOpen}
+          label="Avg. Course Enrollments"
+          value={totalCourses}
+          color="blue"
         />
         <StatCard
           icon={Users}
@@ -457,7 +449,7 @@ export default function CoursesPage() {
         />
         <StatCard
           icon={IndianRupee}
-          label="Total Revenue"
+          label="Avg. Course Revenue"
           value={`₹${(totalRevenue / 100000).toFixed(1)}L`}
           color="indigo"
         />
@@ -796,7 +788,7 @@ export default function CoursesPage() {
           submitLabel="Close"
           size="lg"
         >
-          <div className="space-y-6">
+          <div className="space-y-4">
             {/* Course Info */}
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-4">

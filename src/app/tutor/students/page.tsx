@@ -177,7 +177,7 @@ export default function TeacherStudentsPage() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900">My Students</h1>

@@ -13,6 +13,8 @@ import {
   Mail,
   Plus,
   MoreVertical,
+  BanknoteArrowDown,
+  BanknoteX,
 } from "lucide-react";
 import DataTable, { Column, Filter } from "@/components/DataTable";
 import StatCard from "@/components/StatCard";
@@ -277,7 +279,7 @@ export default function FeePage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -295,32 +297,70 @@ export default function FeePage() {
           <Plus className="w-5 h-5" />
           Generate Invoice
         </button> */}
+        <div>
+          <select className="bg-white rounded-md px-6 py-2 border border-gray-300 shadow-md font-bold">
+            <option value="1">This Month</option>
+            <option value="2">This Year</option>
+            <option value="3">Custom</option>
+          </select>
+        </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <StatCard
           icon={IndianRupee}
-          label="Total Revenue"
-          value={`₹${(totalRevenue / 100000).toFixed(1)}L`}
-          color="green"
-        />
-        <StatCard
-          icon={Clock}
-          label="Pending Amount"
-          value={`₹${(pendingAmount / 1000).toFixed(0)}K`}
-          color="blue"
-        />
-        <StatCard
-          icon={CheckCircle}
-          label="Paid Invoices"
-          value={paidInvoices}
+          label="Revenue"
+          value={`₹1,00,000`}
           color="indigo"
         />
         <StatCard
-          icon={AlertCircle}
+          icon={IndianRupee}
+          label="Revenue Earned"
+          value={`₹50,000`}
+          color="green"
+        />
+
+        <StatCard
+          icon={IndianRupee}
+          label="Revenue Due"
+          value={`₹50,000`}
+          color="orange"
+        />
+        <StatCard
+          icon={BanknoteArrowDown}
+          label="Invoices"
+          value={"20"}
+          color="indigo"
+        />
+        <StatCard
+          icon={BanknoteArrowDown}
+          label="Pending Invoices"
+          value={"10"}
+          color="orange"
+        />
+        <StatCard
+          icon={BanknoteX}
           label="Overdue Invoices"
-          value={overdueInvoices}
+          value={"10"}
+          color="red"
+        />
+        <StatCard
+          icon={BanknoteArrowDown}
+          label="Payments"
+          value={"20"}
+          color="indigo"
+        />
+        <StatCard
+          icon={IndianRupee}
+          label="Pending Payments"
+          value={"20"}
+          color="orange"
+        />
+        <StatCard
+          icon={IndianRupee}
+          label="Overdue Payments"
+          value={"20"}
           color="red"
         />
       </div>

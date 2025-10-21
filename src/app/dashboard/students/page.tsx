@@ -423,7 +423,7 @@ export default function StudentsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -467,12 +467,6 @@ export default function StudentsPage() {
           label="New This Month"
           value={newStudentsThisMonth}
           color="indigo"
-        />
-        <StatCard
-          icon={AlertCircle}
-          label="Pending Fees"
-          value={studentsWithPending}
-          color="red"
         />
       </div>
       {/* DataTable */}
@@ -740,7 +734,7 @@ export default function StudentsPage() {
           submitLabel="Close"
           size="lg"
         >
-          <div className="space-y-6">
+          <div className="space-y-4">
             {/* Student Info */}
             <div className="grid grid-cols-2 gap-4">
               <div>

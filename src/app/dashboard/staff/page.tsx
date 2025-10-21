@@ -396,7 +396,7 @@ export default function StaffPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -423,22 +423,16 @@ export default function StaffPage() {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
-          icon={Users}
-          label="Total Teachers"
-          value={totalTeachers}
-          color="blue"
-        />
-        <StatCard
           icon={UserCheck}
           label="Active Teachers"
           value={activeTeachers}
           color="green"
         />
         <StatCard
-          icon={BookOpen}
-          label="Total Courses"
-          value={totalCourses}
-          color="indigo"
+          icon={Users}
+          label="Teachers Per Course"
+          value={totalTeachers}
+          color="blue"
         />
         <StatCard
           icon={Award}
@@ -735,7 +729,7 @@ export default function StaffPage() {
           submitLabel="Close"
           size="lg"
         >
-          <div className="space-y-6">
+          <div className="space-y-4">
             {/* Personal Info */}
             <div className="grid grid-cols-2 gap-4">
               <div>
