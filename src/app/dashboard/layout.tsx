@@ -28,7 +28,7 @@ export default function SuperAdminLayout({ children }: LayoutProps) {
   return (
     <DashboardLayout
       navItems={superAdminNavItems}
-      companyName="Artvile"
+      companyName="Art School"
       showNotifications={true}
     >
       {children}
