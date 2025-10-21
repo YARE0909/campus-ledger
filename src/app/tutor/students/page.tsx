@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useState, useMemo } from 'react';
-import { Users, UserCheck, BookOpen, GraduationCap } from 'lucide-react';
-import DataTable, { Column } from '@/components/DataTable';
-import StatCard from '@/components/StatCard';
-import Modal from '@/components/Modal';
+import { useState, useMemo } from "react";
+import { Users, UserCheck, BookOpen, GraduationCap } from "lucide-react";
+import DataTable, { Column, Filter } from "@/components/DataTable";
+import StatCard from "@/components/StatCard";
+import Modal from "@/components/Modal";
 
 interface Student {
   id: string;
@@ -14,7 +14,7 @@ interface Student {
   course: string;
   progress: number;
   attendance: number;
-  status: 'Active' | 'Completed' | 'Dropped';
+  status: "Active" | "Completed" | "Dropped";
   joinedDate: string;
 }
 
@@ -24,79 +24,79 @@ export default function TeacherStudentsPage() {
   // Mock Data
   const students: Student[] = [
     {
-      id: 'S001',
-      name: 'Alex Brown',
-      email: 'alex@example.com',
-      batch: 'Web Development - Morning Batch',
-      course: 'Full Stack Web Development',
+      id: "S001",
+      name: "Alex Brown",
+      email: "alex@example.com",
+      batch: "Web Development - Morning Batch",
+      course: "Full Stack Web Development",
       progress: 82,
       attendance: 90,
-      status: 'Active',
-      joinedDate: '2025-11-01',
+      status: "Active",
+      joinedDate: "2025-11-01",
     },
     {
-      id: 'S002',
-      name: 'Emma Davis',
-      email: 'emma@example.com',
-      batch: 'Data Science - Evening Batch',
-      course: 'Data Science & Analytics',
+      id: "S002",
+      name: "Emma Davis",
+      email: "emma@example.com",
+      batch: "Data Science - Evening Batch",
+      course: "Data Science & Analytics",
       progress: 65,
       attendance: 80,
-      status: 'Active',
-      joinedDate: '2025-10-15',
+      status: "Active",
+      joinedDate: "2025-10-15",
     },
     {
-      id: 'S003',
-      name: 'Oliver Wilson',
-      email: 'oliver@example.com',
-      batch: 'Web Development - Morning Batch',
-      course: 'Full Stack Web Development',
+      id: "S003",
+      name: "Oliver Wilson",
+      email: "oliver@example.com",
+      batch: "Web Development - Morning Batch",
+      course: "Full Stack Web Development",
       progress: 100,
       attendance: 95,
-      status: 'Completed',
-      joinedDate: '2025-09-01',
+      status: "Completed",
+      joinedDate: "2025-09-01",
     },
     {
-      id: 'S004',
-      name: 'Sophia Taylor',
-      email: 'sophia@example.com',
-      batch: 'UI/UX - Afternoon Batch',
-      course: 'UI/UX Design',
+      id: "S004",
+      name: "Sophia Taylor",
+      email: "sophia@example.com",
+      batch: "UI/UX - Afternoon Batch",
+      course: "UI/UX Design",
       progress: 48,
       attendance: 70,
-      status: 'Active',
-      joinedDate: '2025-10-01',
+      status: "Active",
+      joinedDate: "2025-10-01",
     },
     {
-      id: 'S005',
-      name: 'Liam Johnson',
-      email: 'liam@example.com',
-      batch: 'Mobile App Dev - Weekend Batch',
-      course: 'Mobile App Development',
+      id: "S005",
+      name: "Liam Johnson",
+      email: "liam@example.com",
+      batch: "Mobile App Dev - Weekend Batch",
+      course: "Mobile App Development",
       progress: 20,
       attendance: 60,
-      status: 'Dropped',
-      joinedDate: '2025-09-10',
+      status: "Dropped",
+      joinedDate: "2025-09-10",
     },
   ];
 
   // Derived insights
   const totalStudents = students.length;
-  const activeStudents = students.filter((s) => s.status === 'Active').length;
-  const completed = students.filter((s) => s.status === 'Completed').length;
+  const activeStudents = students.filter((s) => s.status === "Active").length;
+  const completed = students.filter((s) => s.status === "Completed").length;
   const averageProgress = Math.round(
     students.reduce((acc, s) => acc + s.progress, 0) / totalStudents
   );
 
   // DataTable setup
   const columns: Column<Student>[] = [
-    { key: 'name', label: 'Student Name', sortable: true },
-    { key: 'email', label: 'Email' },
-    { key: 'batch', label: 'Batch', sortable: true },
-    { key: 'course', label: 'Course', sortable: true },
+    { key: "name", label: "Student Name", sortable: true },
+    { key: "email", label: "Email" },
+    { key: "batch", label: "Batch", sortable: true },
+    { key: "course", label: "Course", sortable: true },
     {
-      key: 'progress',
-      label: 'Progress',
+      key: "progress",
+      label: "Progress",
       sortable: true,
       render: (s) => (
         <div className="flex items-center gap-2">
@@ -111,17 +111,17 @@ export default function TeacherStudentsPage() {
       ),
     },
     {
-      key: 'attendance',
-      label: 'Attendance',
+      key: "attendance",
+      label: "Attendance",
       sortable: true,
       render: (s) => (
         <span
           className={`px-2 py-1 rounded-lg text-xs font-medium ${
             s.attendance >= 85
-              ? 'bg-green-100 text-green-700'
+              ? "bg-green-100 text-green-700"
               : s.attendance >= 70
-              ? 'bg-yellow-100 text-yellow-700'
-              : 'bg-red-100 text-red-700'
+              ? "bg-yellow-100 text-yellow-700"
+              : "bg-red-100 text-red-700"
           }`}
         >
           {s.attendance}%
@@ -129,22 +129,50 @@ export default function TeacherStudentsPage() {
       ),
     },
     {
-      key: 'status',
-      label: 'Status',
+      key: "status",
+      label: "Status",
       sortable: true,
       render: (s) => (
         <span
           className={`px-3 py-1 rounded-full text-xs font-semibold ${
-            s.status === 'Active'
-              ? 'bg-blue-100 text-blue-700'
-              : s.status === 'Completed'
-              ? 'bg-green-100 text-green-700'
-              : 'bg-red-100 text-red-700'
+            s.status === "Active"
+              ? "bg-blue-100 text-blue-700"
+              : s.status === "Completed"
+              ? "bg-green-100 text-green-700"
+              : "bg-red-100 text-red-700"
           }`}
         >
           {s.status}
         </span>
       ),
+    },
+  ];
+
+  const filters: Filter[] = [
+    {
+      key: "status",
+      label: "Filter by Status",
+      options: [
+        { value: "Active", label: "Active" },
+        { value: "Completed", label: "Completed" },
+        { value: "Dropped", label: "Dropped" },
+      ],
+    },
+    {
+      key: "batch",
+      label: "Filter by batch",
+      options: [
+        {
+          value: "Web Development - Morning Batch",
+          label: "Web Development - Morning Batch",
+        },
+        {
+          value: "Data Science - Evening Batch",
+          label: "Data Science - Evening Batch",
+        },
+        { value: "UI/UX - Afternoon Batch", label: "UI/UX - Afternoon Batch" },
+        { value: "Mobile App Dev - Weekend Batch", label: "Mobile App Dev - Weekend Batch" },
+      ],
     },
   ];
 
@@ -188,21 +216,11 @@ export default function TeacherStudentsPage() {
       <DataTable<Student>
         data={students}
         columns={columns}
-        searchKeys={['name', 'email', 'batch', 'course']}
-        filters={[
-          {
-            key: 'status',
-            label: 'Filter by Status',
-            options: [
-              { value: 'Active', label: 'Active' },
-              { value: 'Completed', label: 'Completed' },
-              { value: 'Dropped', label: 'Dropped' },
-            ],
-          },
-        ]}
+        searchKeys={["name", "email", "batch", "course"]}
+        filters={filters}
         dateFilter={{
-          key: 'joinedDate',
-          label: 'Joined Date',
+          key: "joinedDate",
+          label: "Joined Date",
         }}
         exportFileName="students_list"
         onRowClick={(student) => setSelectedStudent(student)}
@@ -226,11 +244,11 @@ export default function TeacherStudentsPage() {
               </div>
               <span
                 className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                  selectedStudent.status === 'Active'
-                    ? 'bg-blue-100 text-blue-700'
-                    : selectedStudent.status === 'Completed'
-                    ? 'bg-green-100 text-green-700'
-                    : 'bg-red-100 text-red-700'
+                  selectedStudent.status === "Active"
+                    ? "bg-blue-100 text-blue-700"
+                    : selectedStudent.status === "Completed"
+                    ? "bg-green-100 text-green-700"
+                    : "bg-red-100 text-red-700"
                 }`}
               >
                 {selectedStudent.status}
@@ -251,8 +269,10 @@ export default function TeacherStudentsPage() {
                 <strong>Attendance:</strong> {selectedStudent.attendance}%
               </p>
               <p>
-                <strong>Joined Date:</strong>{' '}
-                {new Date(selectedStudent.joinedDate).toLocaleDateString('en-IN')}
+                <strong>Joined Date:</strong>{" "}
+                {new Date(selectedStudent.joinedDate).toLocaleDateString(
+                  "en-IN"
+                )}
               </p>
             </div>
           </div>

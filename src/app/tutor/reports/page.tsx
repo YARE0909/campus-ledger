@@ -154,6 +154,12 @@ export default function ReportsPage() {
     },
   ];
 
+  const renderActions = (student: { name: any; }) => (
+    <button onClick={() => toast.success(`Viewing report for ${student.name}`)}>
+      <MoreVertical className="w-5 h-5 text-gray-600" />
+    </button>
+  );
+
   return (
     <div className="p-6 space-y-6">
       <Toaster position="top-right" />
@@ -244,14 +250,7 @@ export default function ReportsPage() {
         dateFilter={dateFilter}
         searchPlaceholder="Search students..."
         searchKeys={["name", "batch"]}
-        onRowClick={(student) => setSelectedStudent(student)}
-        renderActions={(student) => (
-          <button
-            onClick={() => toast.success(`Viewing report for ${student.name}`)}
-          >
-            <MoreVertical />
-          </button>
-        )}
+        renderActions={renderActions}
       />
 
       {/* Modal for detailed student report */}
