@@ -71,11 +71,11 @@ export default function DashboardLayout({
       {/* Sidebar - Fixed */}
       <aside
         className={`${
-          sidebarOpen ? "w-64" : "w-20"
+          sidebarOpen ? "w-56" : "w-20"
         } bg-white border-r border-gray-200 transition-all duration-300 ease-in-out flex flex-col flex-shrink-0`}
       >
         {/* Logo & Toggle */}
-        <div className="flex items-center justify-center gap-24 h-16 px-4 border-b border-gray-200 flex-shrink-0">
+        <div className="flex items-center justify-center gap-16 h-16 px-4 border-b border-gray-200 flex-shrink-0">
           {sidebarOpen && (
             <h1 className="text-2xl font-bold text-indigo-700 transition-opacity duration-300">
               Acadify
