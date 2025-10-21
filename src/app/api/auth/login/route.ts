@@ -8,9 +8,9 @@ const JWT_EXPIRES_IN = '1h'; // or your preferred expiration
 
 export async function POST(request: Request) {
   try {
-    const { email, password }: { email: string; password: string } = await request.json();
+    const { name, password }: { name: string; password: string } = await request.json();
 
-    if (!email || !password) {
+    if (!name || !password) {
       return NextResponse.json({
         status: 400,
         message: "Email and password required",
@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     }
 
     // Find user by email
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({ where: { name } });
 
     if (!user) {
       return NextResponse.json({

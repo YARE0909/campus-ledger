@@ -17,7 +17,7 @@ export type Endpoint<Request, Response> = {
 
 // User Login
 export interface LoginRequest {
-  email: string;
+  name: string;
   password: string;
 }
 

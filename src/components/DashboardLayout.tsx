@@ -145,10 +145,10 @@ export default function DashboardLayout({
           <div className="flex items-center gap-3">
             <UserCircle className="w-8 h-8 text-indigo-600" />
             <div>
-              <p className="text-sm font-semibold text-gray-900">
+              <p className="font-semibold text-gray-900">
                 {user?.name}
               </p>
-              <p className="text-xs text-gray-500">{user?.email}</p>
+              {/* <p className="text-xs text-gray-500">{user?.email}</p> */}
             </div>
           </div>
 

@@ -8,6 +8,7 @@ import {
   EyeOff,
   AlertCircle,
   LoaderCircle,
+  User,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { setCookie } from "nookies";
@@ -20,28 +21,21 @@ export default function LoginPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>(
+  const [errors, setErrors] = useState<{ name?: string; password?: string }>(
     {}
   );
   const [apiError, setApiError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
-    email: "",
+    name: "",
     password: "",
   });
   const { setUser } = useUser();
 
-  const validateEmail = (email: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
   const validateForm = () => {
-    const newErrors: { email?: string; password?: string } = {};
+    const newErrors: { name?: string; password?: string } = {};
 
-    if (!formData.email) {
-      newErrors.email = "Email is required";
-    } else if (!validateEmail(formData.email)) {
-      newErrors.email = "Please enter a valid email address";
+    if (!formData.name) {
+      newErrors.name = "Username is required";
     }
 
     if (!formData.password) {
@@ -73,7 +67,7 @@ export default function LoginPage() {
 
     try {
       const { status, data, error, errorMessage } = await apiHandler(endpoints.loginUser, {
-        email: formData.email,
+        name: formData.name,
         password: formData.password,
       });
 
@@ -135,34 +129,34 @@ export default function LoginPage() {
 
             {/* Form */}
             <form onSubmit={handleLogin} className="space-y-6">
-              {/* Email Field */}
+              {/* Username Field */}
               <div>
                 <label
-                  htmlFor="email"
+                  htmlFor="name"
                   className="block mb-2 text-sm font-medium text-gray-700"
                 >
-                  Email Address
+                  Username
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={formData.email}
+                    id="name"
+                    name="name"
+                    type="name"
+                    value={formData.name}
                     onChange={handleChange}
-                    placeholder="you@example.com"
+                    placeholder="John Doe"
                     className={`w-full pl-11 pr-4 py-3 rounded-xl border text-black ${
-                      errors.email
+                      errors.name
                         ? "border-red-300 focus:ring-red-500 focus:border-red-500"
                         : "border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
                     } focus:outline-none focus:ring-2 transition`}
                   />
                 </div>
-                {errors.email && (
+                {errors.name && (
                   <div className="flex items-center gap-1 mt-2 text-red-600 text-sm">
                     <AlertCircle className="w-4 h-4" />
-                    <span>{errors.email}</span>
+                    <span>{errors.name}</span>
                   </div>
                 )}
               </div>
