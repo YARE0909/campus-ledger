@@ -807,7 +807,7 @@ export default function StudentsPage() {
               </h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-gray-600 mb-1">Enrolled Courses</p>
+                  <p className="text-sm text-gray-600 mb-1">Enrolled Products</p>
                   <p className="font-semibold text-gray-900">
                     {selectedStudent.enrolled_courses}
                   </p>
@@ -874,7 +874,7 @@ export default function StudentsPage() {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select Course *
+                Select Product *
               </label>
               <select
                 value={selectedCourse}

@@ -20,7 +20,7 @@ const superAdminNavItems: NavItem[] = [
   { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
   { name: "Batches", icon: Clock4, href: "/dashboard/batches" },
   { name: "Branches", icon: Split, href: "/dashboard/branches" },
-  { name: "Courses", icon: LibraryBig, href: "/dashboard/courses" },
+  { name: "Products", icon: LibraryBig, href: "/dashboard/courses" },
   { name: "Invoice", icon: IndianRupee, href: "/dashboard/invoice" },
   { name: "Staff", icon: Users, href: "/dashboard/staff" },
   { name: "Students", icon: GraduationCap, href: "/dashboard/students" },

@@ -1,70 +1,187 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
-}
-
-model SubscriptionTier {
+model SubscriptionTiers {
   id                String   @id @default(auto()) @map("_id") @db.ObjectId
   name              String
   student_count_min Int
   student_count_max Int
   price_per_student Float
   billing_cycle     String
-  created_at        DateTime @default(now())
-  updated_at        DateTime @default(now())
+  created_at        DateTime
+  updated_at        DateTime
 
-  tenants             Tenant[]
-  institution_billing InstitutionBilling[]
+  TenantSubscriptions TenantSubscriptions[]
+  InstitutionBilling  InstitutionBilling[]
 }
 
-model Tenant {
-  id                   String   @id @default(auto()) @map("_id") @db.ObjectId
-  name                 String
-  contact_email        String
-  phone                String
-  address              String
-  subscription_tier_id String   @db.ObjectId
-  created_at           DateTime @default(now())
-  updated_at           DateTime @default(now())
+model Tenants {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  contact_email String
+  phone         String
+  address       String
+  gst           String
+  created_at    DateTime
+  updated_at    DateTime
 
-  subscriptionTier    SubscriptionTier     @relation(fields: [subscription_tier_id], references: [id])
-  users               User[]
-  students            Student[]
-  courses             Course[]
-  teacher_courses     TeacherCourse[]
-  enrollments         Enrollment[]
-  attendance          Attendance[]
-  performance         Performance[]
-  institution_billing InstitutionBilling[]
-  invoices            Invoice[]
-  notifications       Notification[]
+  Branches            Branches[]
+  Users               Users[]
+  Performance         Performance[]
+  TenantSubscriptions TenantSubscriptions[]
 }
 
-model User {
+model TenantSubscriptions {
+  id                 String   @id @default(auto()) @map("_id") @db.ObjectId
+  subscriptiontierid String
+  start_date         DateTime
+  end_date           DateTime
+  created_at         DateTime
+  updated_at         DateTime
+
+  subscriptiontier SubscriptionTiers @relation(fields: [subscriptiontierid], references: [id])
+  Tenants          Tenants?          @relation(fields: [tenantsId], references: [id])
+  tenantsId        String?
+}
+
+model Branches {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  contact_email String?
+  phone         String?
+  address       String?
+  gst           String?
+  tenant_id     String
+  created_at    DateTime
+  updated_at    DateTime
+
+  Tenant             Tenants              @relation(fields: [tenant_id], references: [id])
+  Batches            Batches[]
+  Products           Products[]
+  Staff              Staff[]
+  Invoices           Invoices[]
+  Notifications      Notifications[]
+  InstitutionBilling InstitutionBilling[]
+  StaffMappings      StaffMappings[]
+  Students           Students[]
+}
+
+model Users {
   id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  tenant_id  String?  @db.ObjectId
+  tenant_id  String?
   name       String   @unique
   email      String   @unique
   password   String
   role       String
   is_active  Boolean
-  created_at DateTime @default(now())
-  updated_at DateTime @default(now())
+  created_at DateTime
+  updated_at DateTime
 
-  tenant               Tenant?         @relation(fields: [tenant_id], references: [id])
-  teacherCourses       TeacherCourse[]
-  attendanceMarked     Attendance[]    @relation("markedBy")
-  performanceEvaluated Performance[]   @relation("evaluatedBy")
-  notificationsCreated Notification[]
+  Tenant        Tenants?         @relation(fields: [tenant_id], references: [id])
+  Notifications Notifications[] @relation("NotificationCreator")
+  Staff         Staff[]
 }
 
-model Student {
+model Batches {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  name       String
+  branch_id  String
+  weekdays   String
+  start_time DateTime
+  end_time   DateTime
+  status     String
+  created_at DateTime
+  updated_at DateTime
+
+  Branch            Branches            @relation(fields: [branch_id], references: [id])
+  StaffMappings     StaffMappings[]
+  EnrollmentBatches EnrollmentBatches[]
+  Attendance        Attendance[]
+}
+
+model PaymentOptions {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  name       String
+  created_at DateTime
+  updated_at DateTime
+
+  EnrollmentPaymentDetails EnrollmentPaymentDetails[]
+}
+
+model Products {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  branch_id    String
+  name         String
+  description  String
+  max_classes  Int
+  comp_classes Int
+  start_date   DateTime
+  end_date     DateTime
+  created_at   DateTime
+  updated_at   DateTime
+
+  Branch        Branches        @relation(fields: [branch_id], references: [id])
+  ProductFees   ProductFees[]
+  StaffMappings StaffMappings[]
+  Enrollments   Enrollments[]
+  Invoices      Invoices[]
+}
+
+model ProductFees {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  product_id String
+  fee        Float
+  start_date DateTime
+  end_date   DateTime
+  created_at DateTime
+  updated_at DateTime
+
+  Product Products @relation(fields: [product_id], references: [id])
+}
+
+model Staff {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  name           String
+  qualification  String
+  experience     String
+  specialization String
+  salary         Float
+  start_date     DateTime
+  end_date       DateTime
+  branch_id      String
+  user_id        String
+  created_at     DateTime
+  updated_at     DateTime
+
+  Branch        Branches        @relation(fields: [branch_id], references: [id])
+  User          Users           @relation(fields: [user_id], references: [id])
+  StaffMappings StaffMappings[]
+  Attendance    Attendance[]
+  Performance   Performance[]
+}
+
+model StaffMappings {
+  id         String @id @default(auto()) @map("_id") @db.ObjectId
+  branch_id  String
+  batch_id   String
+  product_id String
+  staff_id   String
+
+  Branch  Branches @relation(fields: [branch_id], references: [id])
+  Batch   Batches  @relation(fields: [batch_id], references: [id])
+  Product Products @relation(fields: [product_id], references: [id])
+  Staff   Staff    @relation(fields: [staff_id], references: [id])
+}
+
+model Students {
   id               String   @id @default(auto()) @map("_id") @db.ObjectId
-  tenant_id        String   @db.ObjectId
+  branch_id        String
   name             String
   email            String
   phone            String
@@ -72,101 +189,120 @@ model Student {
   guardian_name    String
   guardian_contact String
   status           String
-  created_at       DateTime @default(now())
-  updated_at       DateTime @default(now())
+  created_at       DateTime
+  updated_at       DateTime
 
-  tenant      Tenant       @relation(fields: [tenant_id], references: [id])
-  enrollments Enrollment[]
-  invoices    Invoice[]
+  Branch      Branches      @relation(fields: [branch_id], references: [id])
+  Enrollments Enrollments[]
+  Invoices    Invoices[]
 }
 
-model Course {
-  id             String   @id @default(auto()) @map("_id") @db.ObjectId
-  tenant_id      String   @db.ObjectId
-  name           String
-  description    String
-  duration_weeks Int
-  fee            Float
+model Enrollments {
+  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  product_id     String
+  student_id     String
+  enrolled_date  DateTime
+  completed_date DateTime?
+  dropped_date   DateTime?
   start_date     DateTime
   end_date       DateTime
-  created_at     DateTime @default(now())
-  updated_at     DateTime @default(now())
+  status         String
+  created_at     DateTime
+  updated_at     DateTime
 
-  tenant         Tenant          @relation(fields: [tenant_id], references: [id])
-  teacherCourses TeacherCourse[]
-  enrollments    Enrollment[]
-  invoices       Invoice[]
+  Product                  Products                   @relation(fields: [product_id], references: [id])
+  Student                  Students                   @relation(fields: [student_id], references: [id])
+  EnrollmentPaymentDetails EnrollmentPaymentDetails[]
+  EnrollmentBatches        EnrollmentBatches[]
+  Attendance               Attendance[]
+  Performance              Performance[]
 }
 
-model TeacherCourse {
-  id         String @id @default(auto()) @map("_id") @db.ObjectId
-  tenant_id  String @db.ObjectId
-  course_id  String @db.ObjectId
-  teacher_id String @db.ObjectId
+model EnrollmentPaymentDetails {
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  enrollment_id    String
+  paymentoption_id String
+  created_at       DateTime
+  updated_at       DateTime
 
-  tenant  Tenant @relation(fields: [tenant_id], references: [id])
-  course  Course @relation(fields: [course_id], references: [id])
-  teacher User   @relation(fields: [teacher_id], references: [id])
+  Enrollment    Enrollments    @relation(fields: [enrollment_id], references: [id])
+  PaymentOption PaymentOptions @relation(fields: [paymentoption_id], references: [id])
 }
 
-model PaymentOption {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  name       String
-  created_at DateTime @default(now())
-  updated_at DateTime @default(now())
+model EnrollmentBatches {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  enrollment_id String
+  batch_id      String
+  created_at    DateTime
+  updated_at    DateTime
 
-  enrollments Enrollment[]
-}
-
-model Enrollment {
-  id                String   @id @default(auto()) @map("_id") @db.ObjectId
-  tenant_id         String   @db.ObjectId
-  course_id         String   @db.ObjectId
-  student_id        String   @db.ObjectId
-  paymentoptions_id String   @db.ObjectId
-  enrolled_at       DateTime
-  status            String
-
-  tenant        Tenant        @relation(fields: [tenant_id], references: [id])
-  course        Course        @relation(fields: [course_id], references: [id])
-  student       Student       @relation(fields: [student_id], references: [id])
-  paymentOption PaymentOption @relation(fields: [paymentoptions_id], references: [id])
-  attendance    Attendance[]
-  performance   Performance[]
+  Enrollment Enrollments @relation(fields: [enrollment_id], references: [id])
+  Batch      Batches     @relation(fields: [batch_id], references: [id])
 }
 
 model Attendance {
   id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  tenant_id     String   @db.ObjectId
-  enrollment_id String   @db.ObjectId
+  batch_id      String
+  enrollment_id String
   date          DateTime
   status        String
-  marked_by     String   @db.ObjectId
-  created_at    DateTime @default(now())
+  marked_by     String
+  created_at    DateTime
 
-  tenant     Tenant     @relation(fields: [tenant_id], references: [id])
-  enrollment Enrollment @relation(fields: [enrollment_id], references: [id])
-  markedBy   User       @relation("markedBy", fields: [marked_by], references: [id])
+  Batch      Batches     @relation(fields: [batch_id], references: [id])
+  Enrollment Enrollments @relation(fields: [enrollment_id], references: [id])
+  Staff      Staff       @relation(fields: [marked_by], references: [id])
 }
 
 model Performance {
   id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  tenant_id     String   @db.ObjectId
-  enrollment_id String   @db.ObjectId
+  tenant_id     String
+  enrollment_id String
   marks         Float
   remarks       String
-  evaluated_by  String   @db.ObjectId
-  created_at    DateTime @default(now())
+  evaluated_by  String
+  created_at    DateTime
 
-  tenant      Tenant     @relation(fields: [tenant_id], references: [id])
-  enrollment  Enrollment @relation(fields: [enrollment_id], references: [id])
-  evaluatedBy User       @relation("evaluatedBy", fields: [evaluated_by], references: [id])
+  Tenant     Tenants     @relation(fields: [tenant_id], references: [id])
+  Enrollment Enrollments @relation(fields: [enrollment_id], references: [id])
+  Staff      Staff       @relation(fields: [evaluated_by], references: [id])
+}
+
+model Invoices {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  branch_id    String
+  student_id   String
+  product_id   String
+  period_start DateTime
+  period_end   DateTime
+  due_date     DateTime
+  amount       Float
+  status       String
+  created_at   DateTime
+  updated_at   DateTime
+
+  Branch   Branches   @relation(fields: [branch_id], references: [id])
+  Student  Students   @relation(fields: [student_id], references: [id])
+  Product  Products   @relation(fields: [product_id], references: [id])
+  Payments Payments[]
+}
+
+model Payments {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  invoice_id  String
+  paid_on     DateTime
+  transaction String
+  comments    String
+  created_at  DateTime
+  updated_at  DateTime
+
+  Invoice Invoices @relation(fields: [invoice_id], references: [id])
 }
 
 model InstitutionBilling {
   id                    String    @id @default(auto()) @map("_id") @db.ObjectId
-  tenant_id             String    @db.ObjectId
-  subscription_tier_id  String    @db.ObjectId
+  branch_id             String
+  subscriptiontier_id   String
   month_year            String
   total_active_students Int
   amount_per_student    Float
@@ -175,36 +311,19 @@ model InstitutionBilling {
   generated_at          DateTime
   paid_at               DateTime?
 
-  tenant           Tenant           @relation(fields: [tenant_id], references: [id])
-  subscriptionTier SubscriptionTier @relation(fields: [subscription_tier_id], references: [id])
+  Branch           Branches          @relation(fields: [branch_id], references: [id])
+  SubscriptionTier SubscriptionTiers @relation(fields: [subscriptiontier_id], references: [id])
 }
 
-model Invoice {
-  id           String    @id @default(auto()) @map("_id") @db.ObjectId
-  tenant_id    String    @db.ObjectId
-  student_id   String    @db.ObjectId
-  course_id    String    @db.ObjectId
-  period_start DateTime
-  period_end   DateTime
-  amount       Float
-  status       String
-  generated_at DateTime
-  paid_at      DateTime?
-
-  tenant  Tenant  @relation(fields: [tenant_id], references: [id])
-  student Student @relation(fields: [student_id], references: [id])
-  course  Course  @relation(fields: [course_id], references: [id])
-}
-
-model Notification {
+model Notifications {
   id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  tenant_id  String   @db.ObjectId
+  branch_id  String
   title      String
   message    String
   type       String
-  created_by String   @db.ObjectId
-  created_at DateTime @default(now())
+  created_by String
+  created_at DateTime
 
-  tenant  Tenant @relation(fields: [tenant_id], references: [id])
-  creator User   @relation(fields: [created_by], references: [id])
+  Branch Branches @relation(fields: [branch_id], references: [id])
+  User   Users    @relation(fields: [created_by], references: [id], name: "NotificationCreator")
 }

@@ -119,7 +119,7 @@ export default function FeePage() {
     },
     {
       key: "course_name",
-      label: "Course",
+      label: "Product",
       sortable: true,
       exportRender: (item) => item.course_name,
     },

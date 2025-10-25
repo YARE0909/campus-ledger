@@ -26,7 +26,7 @@ import Loader from "@/components/Loader";
 import toast from "react-hot-toast";
 import mockData from "@/mock/courses.json";
 
-interface Course {
+interface Product {
   id: string;
   name: string;
   description: string;
@@ -48,13 +48,13 @@ interface Teacher {
 }
 
 export default function CoursesPage() {
-  const [courses, setCourses] = useState<Course[]>([]);
+  const [courses, setCourses] = useState<Product[]>([]);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
-  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [selectedCourse, setSelectedCourse] = useState<Product | null>(null);
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -91,7 +91,7 @@ export default function CoursesPage() {
       { id: "6", name: "Mr. Arjun Mehta" },
     ];
 
-    setCourses(mockData as Course[]);
+    setCourses(mockData as Product[]);
     setTeachers(mockTeachers);
 
     // Calculate stats
@@ -134,7 +134,7 @@ export default function CoursesPage() {
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     console.log("Adding course:", formData);
-    toast.success("Course created successfully");
+    toast.success("Product created successfully");
     setShowAddModal(false);
     resetForm();
     fetchCourses();
@@ -149,7 +149,7 @@ export default function CoursesPage() {
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     console.log("Updating course:", { ...formData, id: selectedCourse?.id });
-    toast.success("Course updated successfully");
+    toast.success("Product updated successfully");
     setShowEditModal(false);
     setSelectedCourse(null);
     resetForm();
@@ -158,7 +158,7 @@ export default function CoursesPage() {
   };
 
   // Open edit modal
-  const openEditModal = (course: Course) => {
+  const openEditModal = (course: Product) => {
     setSelectedCourse(course);
     setFormData({
       name: course.name,
@@ -176,7 +176,7 @@ export default function CoursesPage() {
   };
 
   // Open view modal
-  const openViewModal = (course: Course) => {
+  const openViewModal = (course: Product) => {
     setSelectedCourse(course);
     setShowViewModal(true);
     setSelectedCourseId(null);
@@ -186,14 +186,14 @@ export default function CoursesPage() {
   const handleDeleteCourse = async (courseId: string) => {
     if (confirm("Are you sure you want to delete this course?")) {
       await new Promise((resolve) => setTimeout(resolve, 500));
-      toast.success("Course deleted successfully");
+      toast.success("Product deleted successfully");
       fetchCourses();
     }
     setSelectedCourseId(null);
   };
 
   // View enrolled students
-  const viewEnrolledStudents = (course: Course) => {
+  const viewEnrolledStudents = (course: Product) => {
     toast.success(
       `Viewing ${course.enrolled_students} students in ${course.name}`
     );
@@ -201,10 +201,10 @@ export default function CoursesPage() {
   };
 
   // Define columns
-  const columns: Column<Course>[] = [
+  const columns: Column<Product>[] = [
     {
       key: "name",
-      label: "Course Name",
+      label: "Product Name",
       sortable: true,
       render: (item) => (
         <div>
@@ -244,7 +244,7 @@ export default function CoursesPage() {
     },
     {
       key: "fee",
-      label: "Course Fee",
+      label: "Product Fee",
       sortable: true,
       render: (item) => (
         <div className="flex items-center gap-1 font-semibold text-gray-900">
@@ -351,7 +351,7 @@ export default function CoursesPage() {
   ];
 
   // Render actions
-  const renderActions = (item: Course) => (
+  const renderActions = (item: Product) => (
     <div className="relative">
       <button
         onClick={(e) => {
@@ -376,7 +376,7 @@ export default function CoursesPage() {
             className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition"
           >
             <Edit className="w-4 h-4" />
-            Edit Course
+            Edit Product
           </button>
           <button
             onClick={() => viewEnrolledStudents(item)}
@@ -390,7 +390,7 @@ export default function CoursesPage() {
             className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition border-t border-gray-100"
           >
             <Trash2 className="w-4 h-4" />
-            Delete Course
+            Delete Product
           </button>
         </div>
       )}
@@ -407,7 +407,7 @@ export default function CoursesPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">
-            Course Management
+            Product Management
           </h1>
           <p className="text-gray-600 mt-1">
             Manage courses, fees, and teacher assignments
@@ -420,7 +420,7 @@ export default function CoursesPage() {
               setShowAddModal(true);
             }}
             className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition cursor-pointer"
-            title="Add Course"
+            title="Add Product"
           >
             <Plus className="w-5 h-5" />
           </button>
@@ -431,13 +431,13 @@ export default function CoursesPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           icon={CheckCircle}
-          label="Active Courses"
+          label="Active Products"
           value={activeCourses}
           color="green"
         />
         <StatCard
           icon={BookOpen}
-          label="Avg. Course Enrollments"
+          label="Avg. Product Enrollments"
           value={totalCourses}
           color="blue"
         />
@@ -449,7 +449,7 @@ export default function CoursesPage() {
         />
         <StatCard
           icon={IndianRupee}
-          label="Avg. Course Revenue"
+          label="Avg. Product Revenue"
           value={`₹${(totalRevenue / 100000).toFixed(1)}L`}
           color="indigo"
         />
@@ -467,23 +467,23 @@ export default function CoursesPage() {
         renderActions={renderActions}
       />
 
-      {/* Add Course Modal */}
+      {/* Add Product Modal */}
       <FormModal
         isOpen={showAddModal}
         onClose={() => {
           setShowAddModal(false);
           resetForm();
         }}
-        title="Add New Course"
+        title="Add New Product"
         onSubmit={handleAddCourse}
-        submitLabel="Create Course"
+        submitLabel="Create Product"
         isSubmitting={isSubmitting}
         size="lg"
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Course Name *
+              Product Name *
             </label>
             <input
               type="text"
@@ -525,7 +525,7 @@ export default function CoursesPage() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Course Fee (₹) *
+              Product Fee (₹) *
             </label>
             <input
               type="number"
@@ -619,7 +619,7 @@ export default function CoursesPage() {
         </div>
       </FormModal>
 
-      {/* Edit Course Modal */}
+      {/* Edit Product Modal */}
       <FormModal
         isOpen={showEditModal}
         onClose={() => {
@@ -627,7 +627,7 @@ export default function CoursesPage() {
           setSelectedCourse(null);
           resetForm();
         }}
-        title="Edit Course"
+        title="Edit Product"
         onSubmit={handleEditCourse}
         submitLabel="Save Changes"
         isSubmitting={isSubmitting}
@@ -636,7 +636,7 @@ export default function CoursesPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Course Name *
+              Product Name *
             </label>
             <input
               type="text"
@@ -678,7 +678,7 @@ export default function CoursesPage() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Course Fee (₹) *
+              Product Fee (₹) *
             </label>
             <input
               type="number"
@@ -772,7 +772,7 @@ export default function CoursesPage() {
         </div>
       </FormModal>
 
-      {/* View Course Modal */}
+      {/* View Product Modal */}
       {selectedCourse && (
         <FormModal
           isOpen={showViewModal}
@@ -780,7 +780,7 @@ export default function CoursesPage() {
             setShowViewModal(false);
             setSelectedCourse(null);
           }}
-          title="Course Details"
+          title="Product Details"
           onSubmit={(e) => {
             e.preventDefault();
             setShowViewModal(false);
@@ -789,7 +789,7 @@ export default function CoursesPage() {
           size="lg"
         >
           <div className="space-y-4">
-            {/* Course Info */}
+            {/* Product Info */}
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
                 {selectedCourse.name}
@@ -797,10 +797,10 @@ export default function CoursesPage() {
               <p className="text-gray-700">{selectedCourse.description}</p>
             </div>
 
-            {/* Course Details */}
+            {/* Product Details */}
             <div className="border-t pt-4">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Course Information
+                Product Information
               </h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -810,7 +810,7 @@ export default function CoursesPage() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600 mb-1">Course Fee</p>
+                  <p className="text-sm text-gray-600 mb-1">Product Fee</p>
                   <p className="font-semibold text-gray-900">
                     ₹{selectedCourse.fee.toLocaleString("en-IN")}
                   </p>

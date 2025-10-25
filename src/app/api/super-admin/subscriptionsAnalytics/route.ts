@@ -28,42 +28,44 @@ export interface SubscriptionTiersAnalyticsData {
 
 export async function GET() {
   try {
-    // Fetch subscription tiers with counts/sum joined from tenants and billing
-    const tiers = await prisma.subscriptionTier.findMany({
-      select: {
-        id: true,
-        name: true,
-        student_count_min: true,
-        student_count_max: true,
-        price_per_student: true,
-        billing_cycle: true,
-        created_at: true,
-        updated_at: true,
-        tenants: {
-          select: {
-            id: true,
-            institution_billing: {
-              where: { status: 'PAID' },
-              select: { total_amount: true },
+    // Fetch subscription tiers with tenant subscriptions and revenue
+    const tiers = await prisma.subscriptionTiers.findMany({
+      include: {
+        TenantSubscriptions: {
+          include: {
+            Tenants: {
+              select: {
+                id: true,
+              },
             },
           },
+        },
+        InstitutionBilling: {
+          where: { status: 'PAID' },
+          select: { total_amount: true },
         },
       },
     });
 
-    // Process active institutions count and total revenue per tier
+    // Process active institutions count and revenue
     const subscriptionTiers = tiers.map((tier) => {
-      const active_institutions = tier.tenants.length;
-      const total_revenue = tier.tenants.reduce((sum, tenant) => {
-        const paidBilling = tenant.institution_billing.reduce(
-          (s, billing) => s + (billing.total_amount ?? 0),
-          0
-        );
-        return sum + paidBilling;
-      }, 0);
+      // Active institutions count (count unique tenants linked via TenantSubscriptions)
+      const active_institutions = new Set(
+        tier.TenantSubscriptions.map((ts) => ts.tenantsId)
+      ).size;
 
-      // Remove tenants from response, add computed fields
-      const { tenants, ...rest } = tier;
+      // Sum total_amount from institution billings linked to this tier
+      const total_revenue = tier.InstitutionBilling.reduce(
+        (sum, billing) => sum + (billing.total_amount ?? 0),
+        0
+      );
+
+      const {
+        TenantSubscriptions,
+        InstitutionBilling,
+        ...rest
+      } = tier;
+
       return {
         ...rest,
         active_institutions,

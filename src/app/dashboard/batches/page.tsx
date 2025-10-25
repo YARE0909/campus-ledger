@@ -19,6 +19,7 @@ import {
 import DataTable, { Column, Filter } from "@/components/DataTable";
 import Modal, { FormModal } from "@/components/Modal";
 import StatCard from "@/components/StatCard";
+import CustomTimePicker from "@/components/CustomTimePicker";
 
 // Types
 interface Batch {
@@ -26,6 +27,7 @@ interface Batch {
   name: string;
   course: string;
   courseId: string;
+  branchId?: string;
   startDate: string;
   endDate: string;
   schedule: string;
@@ -37,7 +39,7 @@ interface Batch {
   venue?: string;
 }
 
-interface Course {
+interface Product {
   id: string;
   name: string;
 }
@@ -177,7 +179,7 @@ export default function BatchManagementPage() {
     },
   ]);
 
-  const [courses] = useState<Course[]>([
+  const [courses] = useState<Product[]>([
     { id: "C001", name: "Full Stack Web Development" },
     { id: "C002", name: "Data Science & Analytics" },
     { id: "C003", name: "Mobile App Development" },
@@ -266,12 +268,17 @@ export default function BatchManagementPage() {
   const [formData, setFormData] = useState({
     name: "",
     courseId: "",
+    branchId: "",
     startDate: "",
     endDate: "",
     schedule: "",
     maxStudents: 30,
     medium: "Online" as "Online" | "Offline" | "Hybrid",
     venue: "",
+    scheduleType: "",
+    weekdays: [""],
+    startTime: "",
+    endTime: "",
   });
 
   const [selectedTeachers, setSelectedTeachers] = useState<string[]>([]);
@@ -406,7 +413,7 @@ export default function BatchManagementPage() {
     },
     {
       key: "courseId",
-      label: "All Courses",
+      label: "All Products",
       options: courses.map((c) => ({ value: c.id, label: c.name })),
     },
   ];
@@ -611,12 +618,17 @@ export default function BatchManagementPage() {
     setFormData({
       name: batch.name,
       courseId: batch.courseId,
+      branchId: batch.branchId!,
       startDate: batch.startDate,
       endDate: batch.endDate,
       schedule: batch.schedule,
       maxStudents: batch.maxStudents,
       medium: batch.medium,
       venue: batch.venue || "",
+      scheduleType: "",
+      weekdays: [],
+      startTime: "",
+      endTime: "",
     });
     setIsEditModalOpen(true);
   };
@@ -645,12 +657,17 @@ export default function BatchManagementPage() {
     setFormData({
       name: "",
       courseId: "",
+      branchId: "",
       startDate: "",
       endDate: "",
       schedule: "",
       maxStudents: 30,
       medium: "Online",
       venue: "",
+      scheduleType: "",
+      weekdays: [],
+      startTime: "",
+      endTime: "",
     });
     setSelectedTeachers([]);
     setSelectedStudents([]);
@@ -741,9 +758,10 @@ export default function BatchManagementPage() {
         size="lg"
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Batch Name */}
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Batch Name *
+            <label className="block text-sm font-bold text-gray-700 mb-1">
+              Batch Name
             </label>
             <input
               type="text"
@@ -756,10 +774,32 @@ export default function BatchManagementPage() {
               placeholder="e.g., Web Development - Morning Batch"
             />
           </div>
-
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Course *
+            <label className="block text-sm font-bold text-gray-700 mb-1">
+              Branch
+            </label>
+            <select
+              required
+              value={formData.branchId}
+              onChange={(e) =>
+                setFormData({ ...formData, branchId: e.target.value })
+              }
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="">Select a branch</option>
+              <option key="1" value={1}>
+                Indiranagar
+              </option>
+              <option key="2" value={2}>
+                HRBR Layout
+              </option>
+            </select>
+          </div>
+
+          {/* Product */}
+          <div className="md:col-span-2">
+            <label className="block text-sm font-bold text-gray-700 mb-1">
+              Product
             </label>
             <select
               required
@@ -778,138 +818,57 @@ export default function BatchManagementPage() {
             </select>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Start Date *
-            </label>
-            <input
-              type="date"
-              required
-              value={formData.startDate}
-              onChange={(e) =>
-                setFormData({ ...formData, startDate: e.target.value })
-              }
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              End Date *
-            </label>
-            <input
-              type="date"
-              required
-              value={formData.endDate}
-              onChange={(e) =>
-                setFormData({ ...formData, endDate: e.target.value })
-              }
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-          </div>
-
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Schedule *
+            <label className="block text-sm font-bold text-gray-700 mb-1">
+              Select Weekdays
             </label>
-            <input
-              type="text"
-              required
-              value={formData.schedule}
-              onChange={(e) =>
-                setFormData({ ...formData, schedule: e.target.value })
-              }
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="e.g., Mon-Fri, 9:00 AM - 12:00 PM"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Maximum Students *
-            </label>
-            <input
-              type="number"
-              required
-              min="1"
-              value={formData.maxStudents}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  maxStudents: parseInt(e.target.value),
-                })
-              }
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Medium *
-            </label>
-            <select
-              required
-              value={formData.medium}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  medium: e.target.value as "Online" | "Offline" | "Hybrid",
-                })
-              }
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              <option value="Online">Online</option>
-              <option value="Offline">Offline</option>
-              <option value="Hybrid">Hybrid</option>
-            </select>
-          </div>
-
-          {(formData.medium === "Offline" || formData.medium === "Hybrid") && (
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Venue
-              </label>
-              <input
-                type="text"
-                value={formData.venue}
-                onChange={(e) =>
-                  setFormData({ ...formData, venue: e.target.value })
-                }
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="e.g., Room 101, Lab 205"
-              />
-            </div>
-          )}
-
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Assign Teachers (Optional)
-            </label>
-            <div className="border border-gray-300 rounded-lg p-3 max-h-40 overflow-y-auto">
-              {teachers.map((teacher) => (
-                <label
-                  key={teacher.id}
-                  className="flex items-center gap-2 mb-2 cursor-pointer"
+            <div className="w-full flex items-center gap-2">
+              {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
+                <button
+                  key={day}
+                  type="button"
+                  onClick={() => {
+                    const isSelected = formData.weekdays?.includes(day);
+                    setFormData({
+                      ...formData,
+                      weekdays: isSelected
+                        ? formData.weekdays.filter((d) => d !== day)
+                        : [...(formData.weekdays || []), day],
+                    });
+                  }}
+                  className={`w-full px-3 py-1 rounded-lg border cursor-pointer ${
+                    formData.weekdays?.includes(day)
+                      ? "bg-indigo-500 text-white"
+                      : "bg-white text-gray-700 border-gray-300"
+                  }`}
                 >
-                  <input
-                    type="checkbox"
-                    checked={selectedTeachers.includes(teacher.id)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedTeachers([...selectedTeachers, teacher.id]);
-                      } else {
-                        setSelectedTeachers(
-                          selectedTeachers.filter((id) => id !== teacher.id)
-                        );
-                      }
-                    }}
-                    className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-                  />
-                  <span className="text-sm text-gray-700">
-                    {teacher.name} ({teacher.email})
-                  </span>
-                </label>
+                  {day}
+                </button>
               ))}
+            </div>
+          </div>
+
+          {/* Timings */}
+          <div className="md:col-span-2">
+            <label className="block text-sm font-bold text-gray-700 mb-1">
+              Batch Timings
+            </label>
+            <div className="flex items-center gap-3">
+              <div className="w-1/2">
+                <CustomTimePicker
+                  value={formData.startTime}
+                  onChange={(val) =>
+                    setFormData({ ...formData, startTime: val })
+                  }
+                />
+              </div>
+              <span>to</span>
+              <div className="w-1/2">
+                <CustomTimePicker
+                  value={formData.endTime}
+                  onChange={(val) => setFormData({ ...formData, endTime: val })}
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -930,6 +889,7 @@ export default function BatchManagementPage() {
         size="lg"
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Batch Name */}
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Batch Name *
@@ -942,12 +902,37 @@ export default function BatchManagementPage() {
                 setFormData({ ...formData, name: e.target.value })
               }
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="e.g., Web Development - Morning Batch"
             />
           </div>
 
+          {/* Branch */}
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Course *
+              Branch *
+            </label>
+            <select
+              required
+              value={formData.branchId}
+              onChange={(e) =>
+                setFormData({ ...formData, branchId: e.target.value })
+              }
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="">Select a branch</option>
+              <option key="1" value={1}>
+                Indiranagar
+              </option>
+              <option key="2" value={2}>
+                HRBR Layout
+              </option>
+            </select>
+          </div>
+
+          {/* Product */}
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Product *
             </label>
             <select
               required
@@ -966,106 +951,62 @@ export default function BatchManagementPage() {
             </select>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Start Date *
-            </label>
-            <input
-              type="date"
-              required
-              value={formData.startDate}
-              onChange={(e) =>
-                setFormData({ ...formData, startDate: e.target.value })
-              }
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              End Date *
-            </label>
-            <input
-              type="date"
-              required
-              value={formData.endDate}
-              onChange={(e) =>
-                setFormData({ ...formData, endDate: e.target.value })
-              }
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-          </div>
-
+          {/* Select Weekdays */}
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Schedule *
+              Select Weekdays *
             </label>
-            <input
-              type="text"
-              required
-              value={formData.schedule}
-              onChange={(e) =>
-                setFormData({ ...formData, schedule: e.target.value })
-              }
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Maximum Students *
-            </label>
-            <input
-              type="number"
-              required
-              min="1"
-              value={formData.maxStudents}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  maxStudents: parseInt(e.target.value),
-                })
-              }
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Medium *
-            </label>
-            <select
-              required
-              value={formData.medium}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  medium: e.target.value as "Online" | "Offline" | "Hybrid",
-                })
-              }
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              <option value="Online">Online</option>
-              <option value="Offline">Offline</option>
-              <option value="Hybrid">Hybrid</option>
-            </select>
-          </div>
-
-          {(formData.medium === "Offline" || formData.medium === "Hybrid") && (
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Venue
-              </label>
-              <input
-                type="text"
-                value={formData.venue}
-                onChange={(e) =>
-                  setFormData({ ...formData, venue: e.target.value })
-                }
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
+            <div className="flex flex-wrap gap-2">
+              {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
+                <button
+                  key={day}
+                  type="button"
+                  onClick={() => {
+                    const isSelected = formData.weekdays?.includes(day);
+                    setFormData({
+                      ...formData,
+                      weekdays: isSelected
+                        ? formData.weekdays.filter((d) => d !== day)
+                        : [...(formData.weekdays || []), day],
+                    });
+                  }}
+                  className={`px-3 py-1 rounded-lg border cursor-pointer ${
+                    formData.weekdays?.includes(day)
+                      ? "bg-indigo-500 text-white"
+                      : "bg-white text-gray-700 border-gray-300"
+                  }`}
+                >
+                  {day}
+                </button>
+              ))}
             </div>
-          )}
+          </div>
+
+          {/* Timings with CustomTimePicker */}
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Batch Timings *
+            </label>
+            <div className="flex items-center gap-3">
+              <div className="w-1/2">
+                <CustomTimePicker
+                  label="Start Time"
+                  value={formData.startTime}
+                  onChange={(val) =>
+                    setFormData({ ...formData, startTime: val })
+                  }
+                />
+              </div>
+              <span>to</span>
+              <div className="w-1/2">
+                <CustomTimePicker
+                  label="End Time"
+                  value={formData.endTime}
+                  onChange={(val) => setFormData({ ...formData, endTime: val })}
+                />
+              </div>
+            </div>
+          </div>
         </div>
       </FormModal>
 
@@ -1108,7 +1049,7 @@ export default function BatchManagementPage() {
             </div>
 
             <div>
-              <p className="text-sm font-medium text-gray-600">Course</p>
+              <p className="text-sm font-medium text-gray-600">Product</p>
               <p className="text-base text-gray-900">{selectedBatch.course}</p>
             </div>
 

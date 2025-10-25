@@ -1,0 +1,276 @@
+[
+  {
+    "id": "b001",
+    "name": "Downtown Campus",
+    "address": "12 Park Street, Central City, NY 10001",
+    "code": "DT001",
+    "teachers": [
+      {
+        "id": "1",
+        "name": "Dr. Rajesh Kumar",
+        "email": "rajesh.kumar@acadify.com",
+        "phone": "+91 98765 11111",
+        "qualification": "Ph.D. in Mathematics",
+        "specialization": "Advanced Mathematics, Calculus",
+        "experience_years": 15,
+        "assigned_courses": 3,
+        "total_students": 85,
+        "is_active": true,
+        "joined_date": "2020-01-15",
+        "salary": 80000
+      },
+      {
+        "id": "2",
+        "name": "Prof. Priya Sharma",
+        "email": "priya.sharma@acadify.com",
+        "phone": "+91 98765 22222",
+        "qualification": "M.Sc. Physics",
+        "specialization": "Quantum Physics, Thermodynamics",
+        "experience_years": 12,
+        "assigned_courses": 2,
+        "total_students": 72,
+        "is_active": true,
+        "joined_date": "2020-03-20",
+        "salary": 75000
+      }
+    ],
+    "students": [
+      {
+        "id": "1",
+        "name": "Rahul Sharma",
+        "email": "rahul.sharma@example.com",
+        "phone": "+91 98765 43210",
+        "address": "123 MG Road, Bangalore, Karnataka",
+        "guardian_name": "Mr. Vijay Sharma",
+        "guardian_contact": "+91 98765 43211",
+        "status": "ACTIVE",
+        "enrolled_courses": 3,
+        "total_fees": 45000,
+        "pending_fees": 0,
+        "created_at": "2025-09-15"
+      },
+      {
+        "id": "2",
+        "name": "Priya Patel",
+        "email": "priya.patel@example.com",
+        "phone": "+91 98765 43220",
+        "address": "456 Park Street, Mumbai, Maharashtra",
+        "guardian_name": "Mrs. Meera Patel",
+        "guardian_contact": "+91 98765 43221",
+        "status": "ACTIVE",
+        "enrolled_courses": 2,
+        "total_fees": 36000,
+        "pending_fees": 18000,
+        "created_at": "2025-09-20"
+      }
+    ]
+  },
+  {
+    "id": "b002",
+    "name": "Uptown Learning Center",
+    "address": "245 North Avenue, Uptown, NY 10012",
+    "code": "UP002",
+    "teachers": [
+      {
+        "id": "3",
+        "name": "Mr. Amit Patel",
+        "email": "amit.patel@acadify.com",
+        "phone": "+91 98765 33333",
+        "qualification": "M.Sc. Chemistry",
+        "specialization": "Organic Chemistry, Biochemistry",
+        "experience_years": 8,
+        "assigned_courses": 2,
+        "total_students": 68,
+        "is_active": true,
+        "joined_date": "2021-06-10",
+        "salary": 65000
+      },
+      {
+        "id": "4",
+        "name": "Dr. Sneha Reddy",
+        "email": "sneha.reddy@acadify.com",
+        "phone": "+91 98765 44444",
+        "qualification": "Ph.D. in Biology",
+        "specialization": "Molecular Biology, Genetics",
+        "experience_years": 10,
+        "assigned_courses": 2,
+        "total_students": 55,
+        "is_active": true,
+        "joined_date": "2021-08-01",
+        "salary": 72000
+      }
+    ],
+    "students": [
+      {
+        "id": "3",
+        "name": "Amit Kumar",
+        "email": "amit.kumar@example.com",
+        "phone": "+91 98765 43230",
+        "address": "789 Lake View, Delhi",
+        "guardian_name": "Mr. Rajesh Kumar",
+        "guardian_contact": "+91 98765 43231",
+        "status": "ACTIVE",
+        "enrolled_courses": 4,
+        "total_fees": 60000,
+        "pending_fees": 12000,
+        "created_at": "2025-08-10"
+      },
+      {
+        "id": "4",
+        "name": "Sneha Reddy",
+        "email": "sneha.reddy@example.com",
+        "phone": "+91 98765 43240",
+        "address": "321 IT Park Road, Hyderabad, Telangana",
+        "guardian_name": "Mr. Krishna Reddy",
+        "guardian_contact": "+91 98765 43241",
+        "status": "INACTIVE",
+        "enrolled_courses": 1,
+        "total_fees": 15000,
+        "pending_fees": 15000,
+        "created_at": "2025-07-05"
+      }
+    ]
+  },
+  {
+    "id": "b003",
+    "name": "Lakeside Branch",
+    "address": "77 Lakeview Drive, Springfield, IL 62704",
+    "code": "LK003",
+    "teachers": [
+      {
+        "id": "5",
+        "name": "Ms. Kavita Singh",
+        "email": "kavita.singh@acadify.com",
+        "phone": "+91 98765 55555",
+        "qualification": "M.A. English Literature",
+        "specialization": "English Literature, Communication",
+        "experience_years": 7,
+        "assigned_courses": 3,
+        "total_students": 95,
+        "is_active": true,
+        "joined_date": "2022-01-15",
+        "salary": 60000
+      }
+    ],
+    "students": [
+      {
+        "id": "5",
+        "name": "Vikram Singh",
+        "email": "vikram.singh@example.com",
+        "phone": "+91 98765 43250",
+        "address": "654 Civil Lines, Jaipur, Rajasthan",
+        "guardian_name": "Mrs. Kavita Singh",
+        "guardian_contact": "+91 98765 43251",
+        "status": "ACTIVE",
+        "enrolled_courses": 2,
+        "total_fees": 30000,
+        "pending_fees": 0,
+        "created_at": "2025-10-01"
+      },
+      {
+        "id": "6",
+        "name": "Ananya Iyer",
+        "email": "ananya.iyer@example.com",
+        "phone": "+91 98765 43260",
+        "address": "987 Anna Salai, Chennai, Tamil Nadu",
+        "guardian_name": "Mr. Ramesh Iyer",
+        "guardian_contact": "+91 98765 43261",
+        "status": "GRADUATED",
+        "enrolled_courses": 0,
+        "total_fees": 50000,
+        "pending_fees": 0,
+        "created_at": "2024-05-15"
+      }
+    ]
+  },
+  {
+    "id": "b004",
+    "name": "Tech Valley Campus",
+    "address": "501 Innovation Blvd, Albany, NY 12222",
+    "code": "TV004",
+    "teachers": [
+      {
+        "id": "6",
+        "name": "Mr. Arjun Mehta",
+        "email": "arjun.mehta@acadify.com",
+        "phone": "+91 98765 66666",
+        "qualification": "B.Tech, M.Tech Computer Science",
+        "specialization": "Programming, Data Structures",
+        "experience_years": 5,
+        "assigned_courses": 3,
+        "total_students": 78,
+        "is_active": true,
+        "joined_date": "2022-07-20",
+        "salary": 70000
+      }
+    ],
+    "students": [
+      {
+        "id": "7",
+        "name": "Rohan Mehta",
+        "email": "rohan.mehta@example.com",
+        "phone": "+91 98765 43270",
+        "address": "147 SG Highway, Ahmedabad, Gujarat",
+        "guardian_name": "Mrs. Priya Mehta",
+        "guardian_contact": "+91 98765 43271",
+        "status": "DROPPED",
+        "enrolled_courses": 0,
+        "total_fees": 20000,
+        "pending_fees": 5000,
+        "created_at": "2025-06-20"
+      }
+    ]
+  },
+  {
+    "id": "b005",
+    "name": "Greenfield Extension",
+    "address": "18 Oak Street, Greenfield, MA 01301",
+    "code": "GF005",
+    "teachers": [
+      {
+        "id": "7",
+        "name": "Dr. Meera Iyer",
+        "email": "meera.iyer@acadify.com",
+        "phone": "+91 98765 77777",
+        "qualification": "Ph.D. in Economics",
+        "specialization": "Economics, Business Studies",
+        "experience_years": 13,
+        "assigned_courses": 2,
+        "total_students": 60,
+        "is_active": false,
+        "joined_date": "2019-09-01",
+        "salary": 78000
+      },
+      {
+        "id": "8",
+        "name": "Mr. Rahul Verma",
+        "email": "rahul.verma@acadify.com",
+        "phone": "+91 98765 88888",
+        "qualification": "M.Sc. Geography",
+        "specialization": "Physical Geography, GIS",
+        "experience_years": 6,
+        "assigned_courses": 2,
+        "total_students": 45,
+        "is_active": true,
+        "joined_date": "2023-02-10",
+        "salary": 58000
+      }
+    ],
+    "students": [
+      {
+        "id": "8",
+        "name": "Divya Nair",
+        "email": "divya.nair@example.com",
+        "phone": "+91 98765 43280",
+        "address": "258 Marine Drive, Kochi, Kerala",
+        "guardian_name": "Mr. Suresh Nair",
+        "guardian_contact": "+91 98765 43281",
+        "status": "ACTIVE",
+        "enrolled_courses": 3,
+        "total_fees": 42000,
+        "pending_fees": 0,
+        "created_at": "2025-10-10"
+      }
+    ]
+  }
+]

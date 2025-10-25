@@ -128,7 +128,7 @@ export default function SuperAdminDashboard() {
         />
         <StatCard
           icon={GraduationCap}
-          label="Total Courses"
+          label="Total Products"
           value={totalCourses}
           color="purple"
         />

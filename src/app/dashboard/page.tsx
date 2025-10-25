@@ -227,7 +227,7 @@ export default function AdminDashboard() {
         />
         <StatCard
           icon={GraduationCap}
-          label="Total Courses"
+          label="Total Products"
           value={totalCourses}
           color="purple"
         />
@@ -319,12 +319,12 @@ export default function AdminDashboard() {
           )}
         </div>
 
-        {/* Course Enrollments */}
+        {/* Product Enrollments */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center gap-2 mb-6">
             <BookOpen className="w-5 h-5 text-indigo-600" />
             <h2 className="text-xl font-semibold text-gray-900">
-              Students per Course
+              Students per Product
             </h2>
           </div>
           {hasCourseData ? (
@@ -408,7 +408,7 @@ export default function AdminDashboard() {
           </div>
           <div className="text-center p-4 bg-gray-50 rounded-lg border border-gray-200">
             <p className="text-gray-600 text-sm font-medium mb-1">
-              Avg Students per Course
+              Avg Students per Product
             </p>
             <p className="text-2xl font-bold text-gray-900">
               {Math.round(totalActiveStudents / totalCourses)}

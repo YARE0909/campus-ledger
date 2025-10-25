@@ -93,7 +93,7 @@ export default function TeacherStudentsPage() {
     { key: "name", label: "Student Name", sortable: true },
     { key: "email", label: "Email" },
     { key: "batch", label: "Batch", sortable: true },
-    { key: "course", label: "Course", sortable: true },
+    { key: "course", label: "Product", sortable: true },
     {
       key: "progress",
       label: "Progress",
@@ -257,7 +257,7 @@ export default function TeacherStudentsPage() {
 
             <div className="grid grid-cols-2 gap-4 text-sm">
               <p>
-                <strong>Course:</strong> {selectedStudent.course}
+                <strong>Product:</strong> {selectedStudent.course}
               </p>
               <p>
                 <strong>Batch:</strong> {selectedStudent.batch}

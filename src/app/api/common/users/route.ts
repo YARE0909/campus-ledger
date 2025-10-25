@@ -8,7 +8,7 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const tenantId = url.searchParams.get('tenantId');
 
-    const users = await prisma.user.findMany({
+    const users = await prisma.users.findMany({
       where: tenantId ? { tenant_id: tenantId } : undefined,
       select: {
         id: true,
@@ -75,7 +75,7 @@ export async function POST(request: Request) {
     const hashedPassword = await bcrypt.hash(password, 10);
     const now = new Date();
 
-    const newUser = await prisma.user.create({
+    const newUser = await prisma.users.create({
       data: {
         tenant_id: role === 'super_admin' ? undefined : tenant_id, // Set to undefined for super_admin
         name,
@@ -99,7 +99,7 @@ export async function POST(request: Request) {
     };
     return NextResponse.json(response, { status: 201 });
   } catch (error) {
-    console.error('Error creating user:', error);
+    console.error('Error creating users:', error);
     const response: ApiResponse<null> = {
       status: 500,
       message: 'Internal Server Error',
@@ -138,7 +138,7 @@ export async function PUT(request: Request) {
       updateData.password = await bcrypt.hash(password, 10);
     }
 
-    const updatedUser = await prisma.user.update({
+    const updatedUser = await prisma.users.update({
       where: { id },
       data: updateData,
     });
@@ -154,7 +154,7 @@ export async function PUT(request: Request) {
     };
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Error updating user:', error);
+    console.error('Error updating users:', error);
     const response: ApiResponse<null> = {
       status: 500,
       message: 'Internal Server Error',
@@ -182,7 +182,7 @@ export async function DELETE(request: Request) {
       return NextResponse.json(response, { status: 400 });
     }
 
-    await prisma.user.delete({ where: { id } });
+    await prisma.users.delete({ where: { id } });
 
     const response: ApiResponse<null> = {
       status: 200,
@@ -193,7 +193,7 @@ export async function DELETE(request: Request) {
     };
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Error deleting user:', error);
+    console.error('Error deleting users:', error);
     const response: ApiResponse<null> = {
       status: 500,
       message: 'Internal Server Error',

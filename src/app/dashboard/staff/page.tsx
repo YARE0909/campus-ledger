@@ -241,7 +241,7 @@ export default function StaffPage() {
     },
     {
       key: "assigned_courses",
-      label: "Courses",
+      label: "Products",
       sortable: true,
       render: (item) => (
         <div className="flex items-center gap-2">
@@ -357,7 +357,7 @@ export default function StaffPage() {
           </button>
           <button className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
             <BookOpen className="w-4 h-4" />
-            View Courses
+            View Products
           </button>
           <button
             onClick={() => toggleActiveStatus(item)}
@@ -430,7 +430,7 @@ export default function StaffPage() {
         />
         <StatCard
           icon={Users}
-          label="Teachers Per Course"
+          label="Teachers Per Product"
           value={totalTeachers}
           color="blue"
         />
@@ -798,7 +798,7 @@ export default function StaffPage() {
               </h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-gray-600 mb-1">Assigned Courses</p>
+                  <p className="text-sm text-gray-600 mb-1">Assigned Products</p>
                   <p className="font-semibold text-gray-900">
                     {selectedTeacher.assigned_courses}
                   </p>

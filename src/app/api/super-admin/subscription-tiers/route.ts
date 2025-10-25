@@ -25,9 +25,10 @@ export interface SubscriptionTierFull {
   updated_at: Date;
 }
 
+// GET: Fetch all subscription tiers (id and name)
 export async function GET() {
   try {
-    const tiers = await prisma.subscriptionTier.findMany({
+    const tiers = await prisma.subscriptionTiers.findMany({
       select: {
         id: true,
         name: true,
@@ -59,6 +60,7 @@ export async function GET() {
   }
 }
 
+// POST: Create a new subscription tier
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -97,7 +99,7 @@ export async function POST(request: Request) {
 
     const now = new Date();
 
-    const newTier = await prisma.subscriptionTier.create({
+    const newTier = await prisma.subscriptionTiers.create({
       data: {
         name,
         student_count_min,
