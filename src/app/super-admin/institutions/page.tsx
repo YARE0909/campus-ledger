@@ -233,7 +233,7 @@ export default function InstitutionsPage() {
 
   // Render actions dropdown
   const renderActions = (item: Institution) => (
-    <div className="relative">
+    <div>
       <button
         onClick={(e) => {
           e.stopPropagation();

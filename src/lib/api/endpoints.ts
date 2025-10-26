@@ -1,17 +1,27 @@
 import SuperAdminDashboard from "@/app/super-admin/page";
 import {
+  CreateBranchRequest,
+  CreateBranchResponse,
   CreateInstitutionRequest,
   CreateInstitutionResponse,
   CreateSubscriptionTierRequest,
   CreateSubscriptionTierResponse,
+  DeleteBranchRequest,
   Endpoint,
+  GetBranchByTenantRequest,
+  GetBranchByTenantResponse,
   GetSubscriptionTiersAnalyticsResponse,
+  GetUserInfoRequest,
+  GetUserInfoResponse,
   InstitutionAnalyticsResponse,
   LoginRequest,
   LoginResponse,
   SubscriptionTierResponse,
   SuperAdminDashboardResponse,
+  UpdateBranchRequest,
+  UpdateBranchResponse,
 } from "./types";
+import { create } from "domain";
 import path from "path";
 
 export const endpoints = {
@@ -20,6 +30,12 @@ export const endpoints = {
     path: () => "/api/auth/login",
     type: "OPEN",
   } as Endpoint<LoginRequest, LoginResponse>,
+
+  getUserInfo: {
+    method: "GET",
+    path: ({ userId }) => `/api/common/getUserInfo/${userId}`,
+    type: "CLOSE",
+  } as Endpoint<GetUserInfoRequest, GetUserInfoResponse>,
 
   getSuperAdminDashboardData: {
     method: "GET",
@@ -56,4 +72,28 @@ export const endpoints = {
     path: () => "/api/super-admin/subscription-tiers",
     type: "CLOSE",
   } as Endpoint<CreateSubscriptionTierRequest, CreateSubscriptionTierResponse>,
+
+  getBranchByTenant: {
+    method: "GET",
+    path: ({ tenant_id }) => `/api/common/branches?tenant_id=${tenant_id}`,
+    type: "CLOSE",
+  } as Endpoint<GetBranchByTenantRequest, GetBranchByTenantResponse[]>,
+
+  createBranch: {
+    method: "POST",
+    path: () => "/api/common/branches",
+    type: "CLOSE",
+  } as Endpoint<CreateBranchRequest, CreateBranchResponse>,
+
+  updateBranch: {
+    method: "PUT",
+    path: () => "/api/common/branches",
+    type: "CLOSE",
+  } as Endpoint<UpdateBranchRequest, UpdateBranchResponse>,
+
+  deleteBranch: {
+    method: "DELETE",
+    path: () => "/api/common/branches",
+    type: "CLOSE",
+  } as Endpoint<DeleteBranchRequest, null>,
 };

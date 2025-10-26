@@ -12,6 +12,8 @@ model SubscriptionTiers {
   name              String
   student_count_min Int
   student_count_max Int
+  start_date        DateTime?
+  end_date          DateTime?
   price_per_student Float
   billing_cycle     String
   created_at        DateTime
@@ -83,7 +85,7 @@ model Users {
   created_at DateTime
   updated_at DateTime
 
-  Tenant        Tenants?         @relation(fields: [tenant_id], references: [id])
+  Tenant        Tenants?        @relation(fields: [tenant_id], references: [id])
   Notifications Notifications[] @relation("NotificationCreator")
   Staff         Staff[]
 }

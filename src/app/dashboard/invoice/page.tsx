@@ -199,7 +199,7 @@ export default function FeePage() {
 
   // Render actions
   const renderActions = (item: FeeRecord) => (
-    <div className="relative">
+    <div>
       <button
         onClick={(e) => {
           e.stopPropagation();

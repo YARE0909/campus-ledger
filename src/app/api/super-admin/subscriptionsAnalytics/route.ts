@@ -1,13 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-
-type ApiResponse<T> = {
-  status: number;
-  message: string;
-  error: boolean;
-  errorMessage: string | null;
-  data: T | null;
-};
+import { ApiResponse } from '@/lib/api/types';
 
 export interface SubscriptionTierAnalytics {
   id: string;

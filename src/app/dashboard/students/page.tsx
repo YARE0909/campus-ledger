@@ -360,7 +360,7 @@ export default function StudentsPage() {
 
   // Render actions
   const renderActions = (item: Student) => (
-    <div className="relative">
+    <div>
       <button
         onClick={(e) => {
           e.stopPropagation();

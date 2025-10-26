@@ -31,6 +31,21 @@ export interface LoginResponse {
   };
 }
 
+export interface GetUserInfoRequest {
+  userId: string;
+}
+
+export interface GetUserInfoResponse {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  Tenant: {
+    id: string;
+    name: string;
+  };
+}
+
 export interface MonthlyRevenue {
   month: string;
   revenue: number;
@@ -152,4 +167,65 @@ export interface CreateSubscriptionTierResponse {
   updated_at: Date;
 }
 
-// Full API response type
+
+export interface GetBranchByTenantRequest {
+  tenant_id: string;
+}
+
+export interface GetBranchByTenantResponse {
+  id: string;
+  name: string;
+  contact_email?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  gst?: string | null;
+  tenant_id: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface CreateBranchRequest {
+  tenant_id: string;
+  name: string;
+  contact_email?: string;
+  phone?: string;
+  address?: string;
+  gst?: string;
+}
+
+export interface CreateBranchResponse {
+  id: string;
+  tenant_id: string;
+  name: string;
+  contact_email?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  gst?: string | null;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface UpdateBranchRequest {
+  id: string;
+  name: string;
+  contact_email?: string;
+  phone?: string;
+  address?: string;
+  gst?: string;
+}
+
+export interface UpdateBranchResponse {
+  id: string;
+  tenant_id: string;
+  name: string;
+  contact_email?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  gst?: string | null;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface DeleteBranchRequest {
+  id: string;
+}

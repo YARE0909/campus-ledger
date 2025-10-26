@@ -419,7 +419,7 @@ export default function BatchManagementPage() {
   ];
 
   const renderActions = (batch: Batch) => (
-    <div className="relative">
+    <div>
       <button
         onClick={(e) => {
           e.stopPropagation();

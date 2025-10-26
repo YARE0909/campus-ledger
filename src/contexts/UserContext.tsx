@@ -1,19 +1,13 @@
 "use client";
 
+import { GetUserInfoResponse } from "@/lib/api/types";
 import React, { createContext, useContext, useState, ReactNode } from "react";
 
-// Define the User type
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-}
 
 // Define the context type
 interface UserContextType {
-  user: User | null;
-  setUser: (user: User | null) => void;
+  user: GetUserInfoResponse | null;
+  setUser: (user: GetUserInfoResponse | null) => void;
   clearUser: () => void;
 }
 
@@ -22,7 +16,7 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 
 // Provider component
 export function UserProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<GetUserInfoResponse | null>(null);
 
   const clearUser = () => {
     setUser(null);

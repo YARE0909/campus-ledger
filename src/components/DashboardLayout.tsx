@@ -6,6 +6,8 @@ import { useRouter, usePathname } from "next/navigation";
 import { destroyCookie, parseCookies } from "nookies";
 import { useUser } from "@/contexts/UserContext";
 import jwt from "jsonwebtoken";
+import { apiHandler } from "@/lib/api/apiClient";
+import { endpoints } from "@/lib/api/endpoints";
 
 export interface NavItem {
   name: string;
@@ -32,18 +34,24 @@ export default function DashboardLayout({
   const pathname = usePathname(); // Get current pathname
 
   const fetchUser = async () => {
-    const cookies = parseCookies();
+    try {
+      const cookies = parseCookies();
 
-    const { token } = cookies;
-    if (token) {
-      const decoded = jwt.decode(token);
-      const { id, name, email, role }: any = decoded;
-      setUser({
-        id,
-        name,
-        email,
-        role,
-      });
+      const { token } = cookies;
+      if (token) {
+        const decoded = jwt.decode(token);
+        const { id }: any = decoded;
+
+        const res = await apiHandler(endpoints.getUserInfo, {
+          userId: id,
+        });
+        const { status, data, error, errorMessage, message } = res;
+        if (status === 200 && data) {
+          setUser(data);
+        }
+      }
+    } catch (error) {
+      console.log({ error });
     }
   };
 
@@ -65,6 +73,10 @@ export default function DashboardLayout({
       fetchUser();
     }
   }, []);
+
+  useEffect(() => {
+    console.log("User data updated:", user);
+  }, [user]);
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50 text-gray-900">
@@ -145,18 +157,16 @@ export default function DashboardLayout({
           <div className="flex items-center gap-3">
             <UserCircle className="w-8 h-8 text-indigo-600" />
             <div>
-              <p className="font-semibold text-gray-900">
-                {user?.name}
-              </p>
+              <p className="font-semibold text-gray-900">{user?.name}</p>
               {/* <p className="text-xs text-gray-500">{user?.email}</p> */}
             </div>
           </div>
 
           <div className="flex items-center gap-5">
             {/* Notifications */}
-            {companyName && (
+            {user?.Tenant?.name && (
               <div>
-                <h1 className="text-3xl font-bold">{companyName}</h1>
+                <h1 className="text-3xl font-bold">{user?.Tenant.name}</h1>
               </div>
             )}
             {showNotifications && (

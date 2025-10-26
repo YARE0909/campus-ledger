@@ -15,7 +15,6 @@ import { setCookie } from "nookies";
 import toast, { Toaster } from "react-hot-toast";
 import { apiHandler } from "@/lib/api/apiClient";
 import { endpoints } from "@/lib/api/endpoints";
-import { useUser } from "@/contexts/UserContext";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -29,7 +28,6 @@ export default function LoginPage() {
     name: "",
     password: "",
   });
-  const { setUser } = useUser();
 
   const validateForm = () => {
     const newErrors: { name?: string; password?: string } = {};
@@ -86,7 +84,6 @@ export default function LoginPage() {
           path: "/",
           sameSite: "lax",
         });
-        setUser(user);
 
         toast.success("Login successful!");
 

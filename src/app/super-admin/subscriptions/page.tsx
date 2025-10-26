@@ -351,7 +351,7 @@ export default function SubscriptionsPage() {
 
   // Render actions dropdown
   const renderActions = (item: SubscriptionTierAnalytics) => (
-    <div className="relative">
+    <div>
       <button
         onClick={(e) => {
           e.stopPropagation();

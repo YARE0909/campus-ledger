@@ -3,7 +3,6 @@ import { PrismaClient } from '@prisma/client';
 declare global {
   // Allow global prisma client to ensure single instance in dev mode
   // This prevents performance degradation from multiple instances.
-  // eslint-disable-next-line no-var
   var prisma: PrismaClient | undefined;
 }
 

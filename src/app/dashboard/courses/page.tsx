@@ -352,7 +352,7 @@ export default function CoursesPage() {
 
   // Render actions
   const renderActions = (item: Product) => (
-    <div className="relative">
+    <div>
       <button
         onClick={(e) => {
           e.stopPropagation();

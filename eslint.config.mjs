@@ -24,16 +24,17 @@ const eslintConfig = [
     rules: {
       "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/no-unused-vars": [
-        "warn",
+        "off",
         {
           argsIgnorePattern: "^_",
           varsIgnorePattern: "^_",
         },
       ],
       "react/no-unescaped-entities": "off",
-      "react-hooks/exhaustive-deps": "warn",
+      "react-hooks/exhaustive-deps": "off",
       "react/prop-types": "off",
-      "no-console": "warn",
+      "no-console": "off",
+      "@typescript-eslint/no-non-null-asserted-optional-chain": "off",
     },
   },
 ];

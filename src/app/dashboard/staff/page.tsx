@@ -315,7 +315,7 @@ export default function StaffPage() {
 
   // Render actions
   const renderActions = (item: Teacher) => (
-    <div className="relative">
+    <div>
       <button
         onClick={(e) => {
           e.stopPropagation();
