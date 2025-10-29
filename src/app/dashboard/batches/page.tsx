@@ -44,7 +44,7 @@ interface Product {
   name: string;
 }
 
-interface Teacher {
+interface Instructor {
   id: string;
   name: string;
   email: string;
@@ -190,7 +190,7 @@ export default function BatchManagementPage() {
     { id: "C008", name: "Digital Marketing Essentials" },
   ]);
 
-  const [teachers] = useState<Teacher[]>([
+  const [teachers] = useState<Instructor[]>([
     { id: "T001", name: "John Doe", email: "john@example.com" },
     { id: "T002", name: "Jane Smith", email: "jane@example.com" },
     { id: "T003", name: "Mike Johnson", email: "mike@example.com" },
@@ -345,7 +345,7 @@ export default function BatchManagementPage() {
     },
     {
       key: "teachers",
-      label: "Teachers",
+      label: "Instructors",
       render: (batch) => (
         <div className="text-sm text-gray-700">
           {batch.teachers.length > 0
@@ -462,7 +462,7 @@ export default function BatchManagementPage() {
             className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition"
           >
             <UserPlus className="w-4 h-4" />
-            Assign Teachers
+            Assign Instructors
           </button>
           <button
             onClick={(e) => {
@@ -725,7 +725,7 @@ export default function BatchManagementPage() {
         />
         <StatCard
           icon={GraduationCap}
-          label="Unassigned Teachers"
+          label="Unassigned Instructors"
           value={stats.totalTeachers}
           color="red"
         />
@@ -1127,7 +1127,7 @@ export default function BatchManagementPage() {
 
             <div>
               <p className="text-sm font-medium text-gray-600 mb-2">
-                Assigned Teachers
+                Assigned Instructors
               </p>
               {selectedBatch.teachers.length > 0 ? (
                 <div className="flex flex-wrap gap-2">
@@ -1150,7 +1150,7 @@ export default function BatchManagementPage() {
         )}
       </Modal>
 
-      {/* Assign Teachers Modal */}
+      {/* Assign Instructors Modal */}
       <FormModal
         isOpen={isAssignTeachersModalOpen}
         onClose={() => {
@@ -1158,9 +1158,9 @@ export default function BatchManagementPage() {
           setSelectedBatch(null);
           setSelectedTeachers([]);
         }}
-        title="Assign Teachers to Batch"
+        title="Assign Instructors to Batch"
         onSubmit={handleAssignTeachers}
-        submitLabel="Assign Teachers"
+        submitLabel="Assign Instructors"
         isSubmitting={isSubmitting}
       >
         <div>

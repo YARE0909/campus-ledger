@@ -343,7 +343,7 @@ export default function TeacherDashboard() {
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Summary</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 text-center">
-            <p className="text-sm text-gray-600">Student-Teacher Ratio (avg)</p>
+            <p className="text-sm text-gray-600">Student-Instructor Ratio (avg)</p>
             <p className="text-2xl font-bold text-gray-900">{Math.round(totalStudents / Math.max(1, totalBatches))}:1</p>
           </div>
           <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 text-center">

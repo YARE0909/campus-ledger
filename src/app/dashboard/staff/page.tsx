@@ -27,7 +27,7 @@ import Loader from "@/components/Loader";
 import toast from "react-hot-toast";
 import mockData from "@/mock/teachers.json";
 
-interface Teacher {
+interface Instructor {
   id: string;
   name: string;
   email: string;
@@ -43,12 +43,12 @@ interface Teacher {
 }
 
 export default function StaffPage() {
-  const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [teachers, setTeachers] = useState<Instructor[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
-  const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
+  const [selectedTeacher, setSelectedTeacher] = useState<Instructor | null>(null);
   const [selectedTeacherId, setSelectedTeacherId] = useState<string | null>(
     null
   );
@@ -118,7 +118,7 @@ export default function StaffPage() {
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     console.log("Adding teacher:", formData);
-    toast.success("Teacher added successfully");
+    toast.success("Instructor added successfully");
     setShowAddModal(false);
     resetForm();
     fetchTeachers();
@@ -133,7 +133,7 @@ export default function StaffPage() {
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     console.log("Updating teacher:", { ...formData, id: selectedTeacher?.id });
-    toast.success("Teacher updated successfully");
+    toast.success("Instructor updated successfully");
     setShowEditModal(false);
     setSelectedTeacher(null);
     resetForm();
@@ -142,7 +142,7 @@ export default function StaffPage() {
   };
 
   // Open edit modal
-  const openEditModal = (teacher: Teacher) => {
+  const openEditModal = (teacher: Instructor) => {
     setSelectedTeacher(teacher);
     setFormData({
       name: teacher.name,
@@ -159,7 +159,7 @@ export default function StaffPage() {
   };
 
   // Open view modal
-  const openViewModal = (teacher: Teacher) => {
+  const openViewModal = (teacher: Instructor) => {
     setSelectedTeacher(teacher);
     setShowViewModal(true);
     setSelectedTeacherId(null);
@@ -169,41 +169,41 @@ export default function StaffPage() {
   const handleDeleteTeacher = async (teacherId: string) => {
     if (confirm("Are you sure you want to delete this teacher?")) {
       await new Promise((resolve) => setTimeout(resolve, 500));
-      toast.success("Teacher deleted successfully");
+      toast.success("Instructor deleted successfully");
       fetchTeachers();
     }
     setSelectedTeacherId(null);
   };
 
   // Toggle active status
-  const toggleActiveStatus = async (teacher: Teacher) => {
+  const toggleActiveStatus = async (teacher: Instructor) => {
     await new Promise((resolve) => setTimeout(resolve, 500));
     toast.success(
-      `Teacher ${teacher.is_active ? "deactivated" : "activated"} successfully`
+      `Instructor ${teacher.is_active ? "deactivated" : "activated"} successfully`
     );
     fetchTeachers();
     setSelectedTeacherId(null);
   };
 
   // Send email
-  const sendEmail = async (teacher: Teacher) => {
+  const sendEmail = async (teacher: Instructor) => {
     await new Promise((resolve) => setTimeout(resolve, 1000));
     toast.success(`Email sent to ${teacher.email}`);
     setSelectedTeacherId(null);
   };
 
   // Reset password
-  const resetPassword = async (teacher: Teacher) => {
+  const resetPassword = async (teacher: Instructor) => {
     await new Promise((resolve) => setTimeout(resolve, 1000));
     toast.success("Password reset link sent successfully");
     setSelectedTeacherId(null);
   };
 
   // Define columns
-  const columns: Column<Teacher>[] = [
+  const columns: Column<Instructor>[] = [
     {
       key: "name",
-      label: "Teacher Name",
+      label: "Instructor Name",
       sortable: true,
       render: (item) => (
         <div>
@@ -314,7 +314,7 @@ export default function StaffPage() {
   ];
 
   // Render actions
-  const renderActions = (item: Teacher) => (
+  const renderActions = (item: Instructor) => (
     <div>
       <button
         onClick={(e) => {
@@ -339,7 +339,7 @@ export default function StaffPage() {
             className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition"
           >
             <Edit className="w-4 h-4" />
-            Edit Teacher
+            Edit Instructor
           </button>
           <button
             onClick={() => sendEmail(item)}
@@ -384,7 +384,7 @@ export default function StaffPage() {
             className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition border-t border-gray-100"
           >
             <Trash2 className="w-4 h-4" />
-            Delete Teacher
+            Delete Instructor
           </button>
         </div>
       )}
@@ -412,10 +412,10 @@ export default function StaffPage() {
               setShowAddModal(true);
             }}
             className="flex items-center gap-2 px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition cursor-pointer"
-            title="Add Teacher"
+            title="Add Instructor"
           >
             <UserPlus className="w-6 h-6" />
-            {/* Add Teacher */}
+            {/* Add Instructor */}
           </button>
         </div>
       </div>
@@ -424,13 +424,13 @@ export default function StaffPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           icon={UserCheck}
-          label="Active Teachers"
+          label="Active Instructors"
           value={activeTeachers}
           color="green"
         />
         <StatCard
           icon={Users}
-          label="Teachers Per Product"
+          label="Instructors Per Product"
           value={totalTeachers}
           color="blue"
         />
@@ -454,16 +454,16 @@ export default function StaffPage() {
         renderActions={renderActions}
       />
 
-      {/* Add Teacher Modal */}
+      {/* Add Instructor Modal */}
       <FormModal
         isOpen={showAddModal}
         onClose={() => {
           setShowAddModal(false);
           resetForm();
         }}
-        title="Add New Teacher"
+        title="Add New Instructor"
         onSubmit={handleAddTeacher}
-        submitLabel="Add Teacher"
+        submitLabel="Add Instructor"
         isSubmitting={isSubmitting}
         size="lg"
       >
@@ -584,7 +584,7 @@ export default function StaffPage() {
         </div>
       </FormModal>
 
-      {/* Edit Teacher Modal */}
+      {/* Edit Instructor Modal */}
       <FormModal
         isOpen={showEditModal}
         onClose={() => {
@@ -592,7 +592,7 @@ export default function StaffPage() {
           setSelectedTeacher(null);
           resetForm();
         }}
-        title="Edit Teacher"
+        title="Edit Instructor"
         onSubmit={handleEditTeacher}
         submitLabel="Save Changes"
         isSubmitting={isSubmitting}
@@ -713,7 +713,7 @@ export default function StaffPage() {
         </div>
       </FormModal>
 
-      {/* View Teacher Modal */}
+      {/* View Instructor Modal */}
       {selectedTeacher && (
         <FormModal
           isOpen={showViewModal}
@@ -721,7 +721,7 @@ export default function StaffPage() {
             setShowViewModal(false);
             setSelectedTeacher(null);
           }}
-          title="Teacher Details"
+          title="Instructor Details"
           onSubmit={(e) => {
             e.preventDefault();
             setShowViewModal(false);

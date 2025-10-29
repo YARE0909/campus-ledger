@@ -60,7 +60,7 @@ export async function GET() {
     const colors: Record<string, string> = {
       'ACTIVE': '#6366f1',
       'COMPLETED': '#10b981',
-      'DROPPED': '#ef4444',
+      'QUIT': '#ef4444',
     };
 
     const enrollmentStatusData = enrollmentStatusRaw.map(d => ({

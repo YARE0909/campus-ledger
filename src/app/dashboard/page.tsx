@@ -400,7 +400,7 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="text-center p-4 bg-gray-50 rounded-lg border border-gray-200">
             <p className="text-gray-600 text-sm font-medium mb-1">
-              Student-Teacher Ratio
+              Student-Instructor Ratio
             </p>
             <p className="text-2xl font-bold text-gray-900">
               {Math.round(totalActiveStudents / totalTeachers)}:1

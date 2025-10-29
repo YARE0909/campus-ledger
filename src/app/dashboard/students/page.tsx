@@ -15,6 +15,7 @@ import {
   AlertCircle,
   FileText,
   BookText,
+  UserMinus,
 } from "lucide-react";
 import DataTable, { Column, Filter } from "@/components/DataTable";
 import StatCard from "@/components/StatCard";
@@ -32,7 +33,7 @@ interface Student {
   address: string;
   guardian_name: string;
   guardian_contact: string;
-  status: "ACTIVE" | "INACTIVE" | "GRADUATED" | "DROPPED";
+  status: "ACTIVE" | "INACTIVE" | "GRADUATED" | "QUIT";
   enrolled_courses: number;
   total_fees: number;
   pending_fees: number;
@@ -311,7 +312,7 @@ export default function StudentsPage() {
             text: "text-blue-800",
             icon: GraduationCap,
           },
-          DROPPED: {
+          QUIT: {
             bg: "bg-red-100",
             text: "text-red-800",
             icon: AlertCircle,
@@ -353,7 +354,7 @@ export default function StudentsPage() {
         { value: "ACTIVE", label: "Active" },
         { value: "INACTIVE", label: "Inactive" },
         { value: "GRADUATED", label: "Graduated" },
-        { value: "DROPPED", label: "Dropped" },
+        { value: "QUIT", label: "Quit" },
       ],
     },
   ];
@@ -449,7 +450,7 @@ export default function StudentsPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         <StatCard
           icon={Users}
           label="Total Students"
@@ -467,6 +468,18 @@ export default function StudentsPage() {
           label="New This Month"
           value={newStudentsThisMonth}
           color="indigo"
+        />
+        <StatCard
+          icon={UserPlus}
+          label="New This Year"
+          value={newStudentsThisMonth}
+          color="blue"
+        />
+         <StatCard
+          icon={UserMinus}
+          label="Quit This Year"
+          value={newStudentsThisMonth}
+          color="red"
         />
       </div>
       {/* DataTable */}
@@ -551,7 +564,7 @@ export default function StudentsPage() {
               <option value="ACTIVE">Active</option>
               <option value="INACTIVE">Inactive</option>
               <option value="GRADUATED">Graduated</option>
-              <option value="DROPPED">Dropped</option>
+              <option value="QUIT">Quit</option>
             </select>
           </div>
           <div className="md:col-span-2">
@@ -670,7 +683,7 @@ export default function StudentsPage() {
               <option value="ACTIVE">Active</option>
               <option value="INACTIVE">Inactive</option>
               <option value="GRADUATED">Graduated</option>
-              <option value="DROPPED">Dropped</option>
+              <option value="QUIT">Quit</option>
             </select>
           </div>
           <div className="md:col-span-2">
@@ -763,7 +776,7 @@ export default function StudentsPage() {
                       ? "bg-green-100 text-green-800"
                       : selectedStudent.status === "GRADUATED"
                       ? "bg-blue-100 text-blue-800"
-                      : selectedStudent.status === "DROPPED"
+                      : selectedStudent.status === "QUIT"
                       ? "bg-red-100 text-red-800"
                       : "bg-gray-100 text-gray-800"
                   }`}

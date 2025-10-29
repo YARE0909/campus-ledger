@@ -42,14 +42,14 @@ interface Product {
   created_at: string;
 }
 
-interface Teacher {
+interface Instructor {
   id: string;
   name: string;
 }
 
 export default function CoursesPage() {
   const [courses, setCourses] = useState<Product[]>([]);
-  const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [teachers, setTeachers] = useState<Instructor[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -82,7 +82,7 @@ export default function CoursesPage() {
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     // Mock teachers
-    const mockTeachers: Teacher[] = [
+    const mockTeachers: Instructor[] = [
       { id: "1", name: "Dr. Rajesh Kumar" },
       { id: "2", name: "Prof. Priya Sharma" },
       { id: "3", name: "Mr. Amit Patel" },
@@ -218,7 +218,7 @@ export default function CoursesPage() {
     },
     {
       key: "teacher_name",
-      label: "Teacher",
+      label: "Instructor",
       sortable: true,
       render: (item) => (
         <div className="flex items-center gap-2">
@@ -460,7 +460,7 @@ export default function CoursesPage() {
         data={courses}
         columns={columns}
         filters={filters}
-        searchPlaceholder="Search by course name, teacher..."
+        searchPlaceholder="Search by product name, instructor..."
         searchKeys={["name", "description", "teacher_name"]}
         itemsPerPage={5}
         exportFileName="courses"
@@ -567,7 +567,7 @@ export default function CoursesPage() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Assign Teacher *
+              Assign Instructor *
             </label>
             <select
               value={formData.assigned_teacher}
@@ -720,7 +720,7 @@ export default function CoursesPage() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Assign Teacher *
+              Assign Instructor *
             </label>
             <select
               value={formData.assigned_teacher}
@@ -848,7 +848,7 @@ export default function CoursesPage() {
                   </span>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600 mb-1">Assigned Teacher</p>
+                  <p className="text-sm text-gray-600 mb-1">Assigned Instructor</p>
                   <p className="font-semibold text-gray-900">
                     {selectedCourse.teacher_name}
                   </p>
