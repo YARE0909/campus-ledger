@@ -104,6 +104,7 @@ export interface Institution {
   created_at: string;
   last_payment: string | null;
   payment_status: string;
+  gst?: string;
 }
 
 export interface InstitutionAnalyticsResponse {
@@ -117,6 +118,7 @@ export interface CreateInstitutionRequest {
   phone?: string;
   address?: string;
   subscription_tier_id: string;
+  gst?: string;
 }
 
 export interface CreateInstitutionResponse {
@@ -128,6 +130,33 @@ export interface CreateInstitutionResponse {
   subscription_tier_id: string;
   created_at: Date;
   updated_at: Date;
+}
+
+// Request type for updating an institution: id is required, other fields optional for partial update
+export interface UpdateInstitutionRequest {
+  id: string;
+  name?: string;
+  contact_email?: string;
+  phone?: string;
+  address?: string;
+  subscription_tier_id?: string;
+  gst?: string;
+}
+
+// Response type for updated institution object returned by the API
+export interface UpdateInstitutionResponse {
+  id: string;
+  name: string;
+  contact_email: string;
+  phone: string;
+  address: string;
+  subscription_tier_id: string;
+  status: string;
+  active_students: number;
+  total_courses: number;
+  monthly_revenue: number;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface SubscriptionTierAnalytics {
@@ -166,7 +195,6 @@ export interface CreateSubscriptionTierResponse {
   created_at: Date;
   updated_at: Date;
 }
-
 
 export interface GetBranchByTenantRequest {
   tenant_id: string;

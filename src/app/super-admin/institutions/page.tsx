@@ -25,8 +25,14 @@ import InstitutionForm from "./components/InstitutionForm";
 import toast from "react-hot-toast";
 import { endpoints } from "@/lib/api/endpoints";
 import { apiHandler } from "@/lib/api/apiClient";
-import { CreateInstitutionRequest, Institution } from "@/lib/api/types";
+import {
+  CreateInstitutionRequest,
+  Institution,
+  UpdateInstitutionRequest,
+} from "@/lib/api/types";
 import Loader from "@/components/Loader";
+import { UpdateInstitutionModal } from "./components/UpdateInstitutionModal";
+import { DeleteInstitutionModal } from "./components/DeleteInstitutionModal";
 
 export default function InstitutionsPage() {
   const [selectedInstitution, setSelectedInstitution] = useState<string | null>(
@@ -36,12 +42,24 @@ export default function InstitutionsPage() {
   const [institutions, setInstitutions] = useState<Institution[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [updateFormData, setUpdateFormData] =
+    useState<UpdateInstitutionRequest | null>(null);
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+
+  const [deleteInstitutionId, setDeleteInstitutionId] = useState<string | null>(
+    null
+  );
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteInstitutionName, setDeleteInstitutionName] =
+    useState<string>("");
+
   const [formData, setFormData] = useState<CreateInstitutionRequest>({
     name: "",
     contact_email: "",
     phone: "",
     address: "",
     subscription_tier_id: "",
+    gst: "",
   });
   const [subscriptionTiers, setSubscriptionTiers] = useState<
     { id: string; name: string }[]
@@ -63,18 +81,57 @@ export default function InstitutionsPage() {
   }
 
   async function fetchData() {
+    setLoading(true);
     try {
       const res = await apiHandler(endpoints.getInstitutionsAnalytics, null);
-      const { data } = res;
-
-      if (data) {
-        setInstitutions(data.institutions);
+      if (res.data) {
+        setInstitutions(res.data.institutions);
       }
     } catch (error) {
       toast.error("Failed to fetch institutions");
       console.error("Failed to fetch institutions", error);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function updateInstitution(
+    id: string,
+    updatedData: Partial<CreateInstitutionRequest>
+  ) {
+    setIsSubmitting(true);
+    try {
+      const res = await apiHandler(endpoints.updateInstitution, {
+        id,
+        ...updatedData,
+      }); // Make sure your endpoint supports this path or you add a new one
+      if (res.status === 200) {
+        toast.success("Institution updated successfully");
+        fetchData(); // Refresh institution list
+        setShowAddModal(false);
+      } else {
+        throw new Error(res.message || "Update failed");
+      }
+    } catch (error) {
+      toast.error("Failed to update institution");
+      console.error(error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function deleteInstitution(id: string) {
+    try {
+      const res = await apiHandler(endpoints.deleteInstitution, { id });
+      if (res.status === 200) {
+        toast.success("Institution deleted successfully");
+        fetchData();
+      } else {
+        throw new Error(res.message || "Delete failed");
+      }
+    } catch (error) {
+      toast.error("Failed to delete institution");
+      console.error(error);
     }
   }
 
@@ -247,34 +304,36 @@ export default function InstitutionsPage() {
       </button>
       {selectedInstitution === item.id && (
         <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
-          <button className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
-            <Eye className="w-4 h-4" />
-            View Details
-          </button>
-          <button className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
+          <button
+            className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition"
+            onClick={() => {
+              // e.g. open edit modal with selected institution data
+              setSelectedInstitution(item.id);
+              // populate formData for editing
+              setUpdateFormData({
+                id: item.id,
+                name: item.name,
+                contact_email: item.contact_email,
+                phone: item.phone,
+                address: item.address,
+                subscription_tier_id: item.subscription_tier_id,
+                gst: item.gst
+              });
+              setShowUpdateModal(true);
+            }}
+          >
             <Edit className="w-4 h-4" />
             Edit
           </button>
-          <button className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
-            <Mail className="w-4 h-4" />
-            Send Email
-          </button>
-          <button className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
-            <IndianRupee className="w-4 h-4" />
-            View Billing
-          </button>
-          {item.status === "active" ? (
-            <button className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition">
-              <Ban className="w-4 h-4" />
-              Suspend
-            </button>
-          ) : (
-            <button className="w-full flex items-center gap-3 px-4 py-2 text-sm text-green-600 hover:bg-green-50 transition">
-              <PlayCircle className="w-4 h-4" />
-              Activate
-            </button>
-          )}
-          <button className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition border-t border-gray-100">
+
+          <button
+            className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition border-t border-gray-100"
+            onClick={() => {
+              setDeleteInstitutionId(item.id);
+              setDeleteInstitutionName(item.name);
+              setShowDeleteModal(true);
+            }}
+          >
             <Trash2 className="w-4 h-4" />
             Delete
           </button>
@@ -390,6 +449,36 @@ export default function InstitutionsPage() {
           subscriptionTiers={subscriptionTiers}
         />
       </FormModal>
+      <UpdateInstitutionModal
+        isOpen={showUpdateModal}
+        onClose={() => setShowUpdateModal(false)}
+        formData={updateFormData!}
+        setFormData={setUpdateFormData}
+        subscriptionTiers={subscriptionTiers}
+        isSubmitting={isSubmitting}
+        onSubmit={async (e) => {
+          e.preventDefault();
+          if (updateFormData && selectedInstitution) {
+            await updateInstitution(
+              selectedInstitution,
+              updateFormData as Partial<CreateInstitutionRequest>
+            );
+            setShowUpdateModal(false);
+          }
+        }}
+      />
+      <DeleteInstitutionModal
+        institutionName={deleteInstitutionName}
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={async () => {
+          if (deleteInstitutionId) {
+            await deleteInstitution(deleteInstitutionId);
+            setShowDeleteModal(false);
+          }
+        }}
+        isSubmitting={isSubmitting}
+      />
     </div>
   );
 }

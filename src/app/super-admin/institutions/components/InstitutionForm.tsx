@@ -1,10 +1,9 @@
-import { CreateInstitutionRequest } from '@/lib/api/types';
-import React from 'react';
-
+import { CreateInstitutionRequest } from "@/lib/api/types";
+import React from "react";
 
 interface InstitutionFormProps {
-  formData: CreateInstitutionRequest;
-  setFormData: (data: CreateInstitutionRequest) => void;
+  formData: any;
+  setFormData: (data: any) => void;
   subscriptionTiers: { id: string; name: string }[];
 }
 
@@ -16,7 +15,9 @@ export default function InstitutionForm({
   return (
     <>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Institution Name</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Institution Name
+        </label>
         <input
           type="text"
           value={formData.name}
@@ -27,18 +28,24 @@ export default function InstitutionForm({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Contact Email</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Contact Email
+        </label>
         <input
           type="email"
           value={formData.contact_email}
-          onChange={(e) => setFormData({ ...formData, contact_email: e.target.value })}
+          onChange={(e) =>
+            setFormData({ ...formData, contact_email: e.target.value })
+          }
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
           required
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Phone
+        </label>
         <input
           type="tel"
           value={formData.phone}
@@ -48,20 +55,40 @@ export default function InstitutionForm({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Address
+        </label>
         <textarea
           value={formData.address}
-          onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+          onChange={(e) =>
+            setFormData({ ...formData, address: e.target.value })
+          }
           rows={3}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Subscription Tier</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          GST
+        </label>
+        <input
+          type="text"
+          value={formData.gst}
+          onChange={(e) => setFormData({ ...formData, gst: e.target.value })}
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Subscription Tier
+        </label>
         <select
           value={formData.subscription_tier_id}
-          onChange={(e) => setFormData({ ...formData, subscription_tier_id: e.target.value })}
+          onChange={(e) =>
+            setFormData({ ...formData, subscription_tier_id: e.target.value })
+          }
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
           required
         >

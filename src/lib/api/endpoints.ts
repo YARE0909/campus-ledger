@@ -20,6 +20,8 @@ import {
   SuperAdminDashboardResponse,
   UpdateBranchRequest,
   UpdateBranchResponse,
+  UpdateInstitutionRequest,
+  UpdateInstitutionResponse,
 } from "./types";
 import { create } from "domain";
 import path from "path";
@@ -60,6 +62,21 @@ export const endpoints = {
     path: () => "/api/super-admin/institutions",
     type: "CLOSE",
   } as Endpoint<CreateInstitutionRequest, CreateInstitutionResponse>,
+
+  updateInstitution: {
+    method: "PUT",
+    path: () => "/api/super-admin/institutions",
+    type: "CLOSE",
+  } as Endpoint<
+    UpdateInstitutionRequest,
+    UpdateInstitutionResponse
+  >,
+
+  deleteInstitution: {
+    method: "DELETE",
+    path: ({ id }) => `/api/super-admin/institutions?id=${id}`,
+    type: "CLOSE",
+  } as Endpoint<{ id: string }, null>,
 
   getSubscriptionTiersAnalytics: {
     method: "GET",

@@ -156,6 +156,7 @@ export async function GET() {
         created_at: tenant.created_at.toISOString(),
         last_payment: latestBilling?.month_year || null,
         payment_status: paymentStatus,
+        gst: tenant.gst || '',
       };
     });
 
