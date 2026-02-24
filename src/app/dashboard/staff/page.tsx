@@ -19,6 +19,7 @@ import {
   Calendar,
   Lock,
   UserCheck,
+  IndianRupee,
 } from "lucide-react";
 import DataTable, { Column, Filter } from "@/components/DataTable";
 import StatCard from "@/components/StatCard";
@@ -356,8 +357,8 @@ export default function StaffPage() {
             Reset Password
           </button>
           <button className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
-            <BookOpen className="w-4 h-4" />
-            View Products
+            <IndianRupee className="w-4 h-4" />
+            Make Payment
           </button>
           <button
             onClick={() => toggleActiveStatus(item)}
