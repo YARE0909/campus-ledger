@@ -9,6 +9,8 @@ import {
   LibraryBig,
   Clock4,
   Split,
+  ChartSpline,
+  TestTubeDiagonal,
 } from "lucide-react";
 import DashboardLayout, { NavItem } from "@/components/DashboardLayout";
 
@@ -24,6 +26,9 @@ const superAdminNavItems: NavItem[] = [
   { name: "Invoice", icon: IndianRupee, href: "/dashboard/invoice" },
   { name: "Staff", icon: Users, href: "/dashboard/staff" },
   { name: "Students", icon: GraduationCap, href: "/dashboard/students" },
+  { name: "Progress", icon: ChartSpline, href: "/dashboard/progress" },
+  { name: "Payments", icon: IndianRupee, href: "/dashboard/payments" },
+  { name: "Evaluation", icon: TestTubeDiagonal, href: "/dashboard/evaluation" },
 ];
 
 export default function SuperAdminLayout({ children }: LayoutProps) {

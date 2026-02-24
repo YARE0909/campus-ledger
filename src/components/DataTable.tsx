@@ -89,7 +89,7 @@ export default function DataTable<T extends Record<string, any>>({
 
   // Filter and search logic
   const filteredData = useMemo(() => {
-    let filtered = [...data];
+    let filtered = [...(data ?? [])];
 
     // Apply filters
     Object.entries(activeFilters).forEach(([key, value]) => {

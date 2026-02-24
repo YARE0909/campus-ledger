@@ -13,27 +13,25 @@ import {
 import { useRouter } from "next/navigation";
 import { setCookie } from "nookies";
 import toast, { Toaster } from "react-hot-toast";
-import { apiHandler } from "@/lib/api/apiClient";
-import { endpoints } from "@/lib/api/endpoints";
 
 export default function LoginPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState<{ name?: string; password?: string }>(
-    {}
+  const [errors, setErrors] = useState<{ email?: string; password?: string }>(
+    {},
   );
   const [apiError, setApiError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
-    name: "",
+    email: "",
     password: "",
   });
 
   const validateForm = () => {
-    const newErrors: { name?: string; password?: string } = {};
+    const newErrors: { email?: string; password?: string } = {};
 
-    if (!formData.name) {
-      newErrors.name = "Username is required";
+    if (!formData.email) {
+      newErrors.email = "Username is required";
     }
 
     if (!formData.password) {
@@ -56,48 +54,51 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
 
     setIsLoading(true);
     setApiError(null);
 
     try {
-      const { status, data, error, errorMessage } = await apiHandler(endpoints.loginUser, {
-        name: formData.name,
-        password: formData.password,
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
       });
 
-      if (status === 401) {
-        setApiError(errorMessage || "Login failed");
-        toast.error(errorMessage || "Login failed");
+      const data = await res.json();
+
+      if (!res.ok) {
+        setApiError(data?.message || "Login failed");
+        toast.error(data?.message || "Login failed");
         setIsLoading(false);
         return;
       }
 
-      if (data) {
-        const { token, user } = data;
-        // Store token securely in HttpOnly cookie using nookies
-        setCookie(null, "token", token, {
-          maxAge: 60 * 60, // 1 hour
-          path: "/",
-          sameSite: "lax",
-        });
+      const { token, user } = data;
 
-        toast.success("Login successful!");
+      setCookie(null, "token", token, {
+        maxAge: 60 * 60,
+        path: "/",
+        sameSite: "lax",
+      });
 
-        // Redirect based on role or default
-        if (user.role === "super_admin") {
-          router.push("/super-admin");
-        } else if (user.role === "admin") {
-          router.push("/dashboard");
-        } else {
-          router.push("/tutor");
-        }
+      toast.success("Login successful!");
+
+      if (user.role === "super_admin") {
+        router.push("/super-admin");
+      } else if (user.role === "admin") {
+        router.push("/dashboard");
+      } else {
+        router.push("/tutor");
       }
     } catch (error) {
-      console.log({error})
+      console.error(error);
       setApiError("An unexpected error occurred");
       toast.error("An unexpected error occurred");
     } finally {
@@ -116,9 +117,7 @@ export default function LoginPage() {
               <div className="inline-flex items-center justify-center w-16 h-16 bg-indigo-100 rounded-2xl mb-4">
                 <Lock className="w-8 h-8 text-indigo-600" />
               </div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                Acadify
-              </h1>
+              <h1 className="text-3xl font-bold text-gray-900">Acadify</h1>
               <p className="text-gray-600 text-sm">
                 Sign in to your account to continue
               </p>
@@ -129,7 +128,7 @@ export default function LoginPage() {
               {/* Username Field */}
               <div>
                 <label
-                  htmlFor="name"
+                  htmlFor="email"
                   className="block mb-2 text-sm font-medium text-gray-700"
                 >
                   Username
@@ -137,23 +136,23 @@ export default function LoginPage() {
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <input
-                    id="name"
-                    name="name"
-                    type="name"
-                    value={formData.name}
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={formData.email}
                     onChange={handleChange}
                     placeholder="John Doe"
                     className={`w-full pl-11 pr-4 py-3 rounded-xl border text-black ${
-                      errors.name
+                      errors.email
                         ? "border-red-300 focus:ring-red-500 focus:border-red-500"
                         : "border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
                     } focus:outline-none focus:ring-2 transition`}
                   />
                 </div>
-                {errors.name && (
+                {errors.email && (
                   <div className="flex items-center gap-1 mt-2 text-red-600 text-sm">
                     <AlertCircle className="w-4 h-4" />
-                    <span>{errors.name}</span>
+                    <span>{errors.email}</span>
                   </div>
                 )}
               </div>

@@ -6,7 +6,6 @@ import { useRouter, usePathname } from "next/navigation";
 import { destroyCookie, parseCookies } from "nookies";
 import { useUser } from "@/contexts/UserContext";
 import jwt from "jsonwebtoken";
-import { apiHandler } from "@/lib/api/apiClient";
 import { endpoints } from "@/lib/api/endpoints";
 
 export interface NavItem {
@@ -36,22 +35,28 @@ export default function DashboardLayout({
   const fetchUser = async () => {
     try {
       const cookies = parseCookies();
-
       const { token } = cookies;
-      if (token) {
-        const decoded = jwt.decode(token);
-        const { id }: any = decoded;
 
-        const res = await apiHandler(endpoints.getUserInfo, {
-          userId: id,
-        });
-        const { status, data, error, errorMessage, message } = res;
-        if (status === 200 && data) {
-          setUser(data);
-        }
+      if (!token) return;
+
+      const decoded: any = jwt.decode(token);
+
+      if (!decoded?.id) return;
+
+      const res = await fetch(`/api/common/getUserInfo/${decoded.id}`);
+
+      if (!res.ok) {
+        console.error("Failed to fetch user");
+        return;
+      }
+
+      const data = await res.json();
+
+      if (data) {
+        setUser(data);
       }
     } catch (error) {
-      console.log({ error });
+      console.log("fetchUser error:", error);
     }
   };
 
