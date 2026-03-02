@@ -9,7 +9,7 @@ export async function GET(request: Request) {
     const id = url.searchParams.get("id");
     let data;
     if (id) {
-      data = await prisma.tenants.findUnique({ where: { id } });
+      data = await prisma.tenants.findUnique({ where: { id: Number(id) } });
     } else {
       data = await prisma.tenants.findMany();
     }
@@ -94,10 +94,10 @@ export async function POST(request: Request) {
     });
 
     // Create TenantSubscription linking tenant to SubscriptionTier
-    const newTenantSubscription = await prisma.tenantSubscriptions.create({
+    const newTenantSubscription = await prisma.tenantsubscriptions.create({
       data: {
-        tenantsId: newTenant.id,
-        subscriptiontierid: subscription_tier_id,
+        tenant_id: Number(newTenant.id),
+        subscriptiontierid: Number(subscription_tier_id),
         start_date: now,
         end_date: new Date(now.setFullYear(now.getFullYear() + 1)), // 1-year subscription
         created_at: now,
@@ -253,25 +253,25 @@ export async function DELETE(request: Request) {
     // Delete dependent records in correct order to avoid FK errors
 
     // 1. Delete Notifications created by Users belonging to tenant
-    await prisma.notifications.deleteMany({
-      where: {
-        created_by: {
-          in: (
-            await prisma.users.findMany({
-              where: { tenant_id: tenantId },
-              select: { id: true },
-            })
-          ).map((u) => u.id),
-        },
-      },
-    });
+    // await prisma.notifications.deleteMany({
+    //   where: {
+    //     created_by: {
+    //       in: (
+    //         await prisma.users.findMany({
+    //           where: { tenant_id: tenantId },
+    //           select: { id: true },
+    //         })
+    //       ).map((u) => u.id),
+    //     },
+    //   },
+    // });
 
     // 2. Delete Users belonging to the tenant
-    await prisma.users.deleteMany({ where: { tenant_id: tenantId } });
+    await prisma.users.deleteMany({ where: { tenant_id: Number(tenantId) } });
 
     // 3. Find Branches belonging to tenant
     const branches = await prisma.branches.findMany({
-      where: { tenant_id: tenantId },
+      where: { tenant_id: Number(tenantId) },
       select: { id: true },
     });
     const branchIds = branches.map((b) => b.id);
@@ -294,7 +294,7 @@ export async function DELETE(request: Request) {
     });
 
     // Delete EnrollmentBatches related to Batches
-    await prisma.enrollmentBatches.deleteMany({
+    await prisma.enrollmentbatches.deleteMany({
       where: {
         batch_id: { in: batchIds },
       },
@@ -344,12 +344,12 @@ export async function DELETE(request: Request) {
     // Delete Performance related to Enrollments or Tenant
     await prisma.performance.deleteMany({
       where: {
-        OR: [{ enrollment_id: { in: enrollmentIds } }, { tenant_id: tenantId }],
+        OR: [{ enrollment_id: { in: enrollmentIds } }, { tenant_id: Number(tenantId) }],
       },
     });
 
     // Delete EnrollmentPaymentDetails related to Enrollments
-    await prisma.enrollmentPaymentDetails.deleteMany({
+    await prisma.enrollmentpaymentdetails.deleteMany({
       where: {
         enrollment_id: { in: enrollmentIds },
       },
@@ -370,7 +370,7 @@ export async function DELETE(request: Request) {
     // Delete Products under branches and dependent data
 
     // Delete ProductFees under products
-    await prisma.productFees.deleteMany({
+    await prisma.productfees.deleteMany({
       where: { product_id: { in: productIds } },
     });
 
@@ -389,7 +389,7 @@ export async function DELETE(request: Request) {
     ).map((s) => s.id);
 
     // Delete StaffMappings related to staff
-    await prisma.staffMappings.deleteMany({
+    await prisma.staffmappings.deleteMany({
       where: {
         staff_id: { in: staffIds },
       },
@@ -437,7 +437,7 @@ export async function DELETE(request: Request) {
     });
 
     // Delete InstitutionBilling related to branches
-    await prisma.institutionBilling.deleteMany({
+    await prisma.institutionbilling.deleteMany({
       where: { branch_id: { in: branchIds } },
     });
 
@@ -447,18 +447,18 @@ export async function DELETE(request: Request) {
     });
 
     // Delete TenantSubscriptions related to tenant
-    await prisma.tenantSubscriptions.deleteMany({
-      where: { tenantsId: tenantId },
+    await prisma.tenantsubscriptions.deleteMany({
+      where: { tenant_id: Number(tenantId) },
     });
 
     // Delete Branches
     await prisma.branches.deleteMany({
-      where: { tenant_id: tenantId },
+      where: { tenant_id: Number(tenantId) },
     });
 
     // Finally, delete the tenant itself
     const deletedTenant = await prisma.tenants.delete({
-      where: { id: tenantId },
+      where: { id: Number(tenantId) },
     });
 
     const response: ApiResponse<typeof deletedTenant> = {

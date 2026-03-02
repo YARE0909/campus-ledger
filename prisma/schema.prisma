@@ -1,331 +1,278 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client"
+  output        = "../src/generated/prisma"
+  binaryTargets = ["native", "linux-musl"]
 }
 
 datasource db {
-  provider = "mongodb"
-  url      = env("DATABASE_URL")
+  provider = "mysql"
 }
 
-model SubscriptionTiers {
-  id                String   @id @default(auto()) @map("_id") @db.ObjectId
-  name              String
+model attendance {
+  id            Int       @id @default(autoincrement())
+  batch_id      Int
+  enrollment_id Int
+  date          DateTime  @db.Date
+  status        String?   @db.VarChar(20)
+  marked_by     Int?
+  created_at    DateTime? @default(now()) @db.DateTime(0)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model batches {
+  id           Int            @id @default(autoincrement())
+  name         String         @db.VarChar(255)
+  branch_id    Int
+  weekdays     String?        @db.VarChar(50)
+  start_time   DateTime?      @db.Time(0)
+  end_time     DateTime?      @db.Time(0)
+  max_students Int            @default(0)
+  medium       batches_medium
+  status       String?        @db.VarChar(50)
+  created_at   DateTime?      @default(now()) @db.DateTime(0)
+  updated_at   DateTime?      @default(now()) @db.DateTime(0)
+}
+
+model branches {
+  id            Int       @id @default(autoincrement())
+  name          String    @db.VarChar(255)
+  contact_email String?   @db.VarChar(255)
+  phone         String?   @db.VarChar(50)
+  address       String?   @db.Text
+  gst           String?   @db.VarChar(100)
+  tenant_id     Int
+  created_at    DateTime? @default(now()) @db.DateTime(0)
+  updated_at    DateTime? @default(now()) @db.DateTime(0)
+}
+
+model courseprogress {
+  id              Int       @id @default(autoincrement())
+  course_topic_id Int
+  enrollment_id   Int
+  status          Boolean
+  completed_on    DateTime? @default(now()) @db.Timestamp(0)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model coursetopics {
+  id                Int       @id @default(autoincrement())
+  course_topic_name String?   @db.VarChar(100)
+  product_id        Int
+  parent_id         Int       @default(0)
+  IsActive          Int?      @default(1) @db.TinyInt
+  created_at        DateTime? @default(now()) @db.Timestamp(0)
+  modified_at       DateTime? @default(now()) @db.Timestamp(0)
+  products          products  @relation(fields: [product_id], references: [id], map: "fk_topics_productid")
+
+  @@index([product_id], map: "fk_topics_productid_idx")
+}
+
+model enrollmentbatches {
+  id            Int       @id @default(autoincrement())
+  enrollment_id Int
+  batch_id      Int
+  created_at    DateTime? @default(now()) @db.DateTime(0)
+  updated_at    DateTime? @default(now()) @db.DateTime(0)
+}
+
+model enrollmentpaymentdetails {
+  id               Int       @id @default(autoincrement())
+  enrollment_id    Int
+  paymentoption_id Int
+  created_at       DateTime? @default(now()) @db.DateTime(0)
+  updated_at       DateTime? @default(now()) @db.DateTime(0)
+}
+
+model enrollments {
+  id             Int       @id @default(autoincrement())
+  product_id     Int
+  student_id     Int
+  enrolled_date  DateTime? @db.DateTime(0)
+  completed_date DateTime? @db.DateTime(0)
+  dropped_date   DateTime? @db.DateTime(0)
+  start_date     DateTime? @db.Date
+  end_date       DateTime? @db.Date
+  status         String?   @db.VarChar(50)
+  created_at     DateTime? @default(now()) @db.DateTime(0)
+  updated_at     DateTime? @default(now()) @db.DateTime(0)
+}
+
+model institutionbilling {
+  id                    Int       @id @default(autoincrement())
+  branch_id             Int
+  subscriptiontier_id   Int
+  month_year            String?   @db.VarChar(7)
+  total_active_students Int?
+  amount_per_student    Decimal?  @db.Decimal(10, 2)
+  total_amount          Decimal?  @db.Decimal(10, 2)
+  status                String?   @db.VarChar(50)
+  generated_at          DateTime? @db.DateTime(0)
+  paid_at               DateTime? @db.DateTime(0)
+}
+
+model invoices {
+  id           Int       @id @default(autoincrement())
+  branch_id    Int
+  student_id   Int
+  product_id   Int
+  period_start DateTime? @db.Date
+  period_end   DateTime? @db.Date
+  due_date     DateTime? @db.Date
+  amount       Decimal   @db.Decimal(10, 2)
+  status       String?   @db.VarChar(50)
+  created_at   DateTime? @default(now()) @db.DateTime(0)
+  updated_at   DateTime? @default(now()) @db.DateTime(0)
+}
+
+model notifications {
+  id         Int       @id @default(autoincrement())
+  branch_id  Int
+  title      String?   @db.VarChar(255)
+  message    String?   @db.Text
+  type       String?   @db.VarChar(50)
+  created_at DateTime? @default(now()) @db.DateTime(0)
+}
+
+model paymentoptions {
+  id         Int       @id @default(autoincrement())
+  name       String    @db.VarChar(255)
+  created_at DateTime? @default(now()) @db.DateTime(0)
+  updated_at DateTime? @default(now()) @db.DateTime(0)
+}
+
+model payments {
+  id          Int       @id @default(autoincrement())
+  invoice_id  Int
+  paid_on     DateTime? @db.DateTime(0)
+  transaction String?   @db.VarChar(50)
+  comments    String?   @db.VarChar(1000)
+  created_at  DateTime? @default(now()) @db.DateTime(0)
+  updated_at  DateTime? @default(now()) @db.DateTime(0)
+}
+
+model performance {
+  id            Int       @id @default(autoincrement())
+  tenant_id     Int
+  enrollment_id Int
+  marks         Decimal?  @db.Decimal(5, 2)
+  remarks       String?   @db.Text
+  evaluated_by  Int?
+  created_at    DateTime? @default(now()) @db.DateTime(0)
+}
+
+model productfees {
+  id         Int       @id @default(autoincrement())
+  product_id Int
+  fee        Decimal   @db.Decimal(10, 2)
+  start_date DateTime? @db.Date
+  end_date   DateTime? @db.Date
+  created_at DateTime? @default(now()) @db.DateTime(0)
+  updated_at DateTime? @default(now()) @db.DateTime(0)
+}
+
+model products {
+  id           Int            @id @default(autoincrement())
+  branch_id    Int
+  name         String         @db.VarChar(255)
+  description  String?        @db.Text
+  max_classes  Int?
+  comp_classes Int?
+  start_date   DateTime?      @db.Date
+  end_date     DateTime?      @db.Date
+  created_at   DateTime?      @default(now()) @db.DateTime(0)
+  updated_at   DateTime?      @default(now()) @db.DateTime(0)
+  coursetopics coursetopics[]
+}
+
+model staff {
+  id             Int       @id @default(autoincrement())
+  name           String    @db.VarChar(200)
+  qualification  String?   @db.VarChar(100)
+  experience     String?   @db.VarChar(100)
+  specialization String?   @db.VarChar(100)
+  salary         Decimal?  @db.Decimal(10, 2)
+  start_date     DateTime? @db.Date
+  end_date       DateTime? @db.Date
+  branch_id      Int
+  user_id        Int?
+  created_at     DateTime? @default(now()) @db.DateTime(0)
+  updated_at     DateTime? @default(now()) @db.DateTime(0)
+}
+
+model staffmappings {
+  id         Int       @id @default(autoincrement())
+  branch_id  Int
+  batch_id   Int
+  product_id Int?
+  staff_id   Int
+  created_at DateTime  @db.DateTime(0)
+  updated_at DateTime? @default(now()) @db.DateTime(0)
+}
+
+model students {
+  id                      Int       @id @default(autoincrement())
+  branch_id               Int
+  name                    String    @db.VarChar(255)
+  email                   String?   @db.VarChar(255)
+  phone                   String?   @db.VarChar(50)
+  address                 String?   @db.Text
+  parent_guardian_name    String?   @db.VarChar(255)
+  parent_guardian_contact String?   @db.VarChar(50)
+  parent_guardian_email   String?   @db.VarChar(255)
+  status                  String?   @db.VarChar(50)
+  created_at              DateTime? @default(now()) @db.DateTime(0)
+  updated_at              DateTime? @default(now()) @db.DateTime(0)
+}
+
+model subscriptiontiers {
+  id                Int       @id @default(autoincrement())
+  name              String    @db.VarChar(255)
   student_count_min Int
   student_count_max Int
-  start_date        DateTime?
-  end_date          DateTime?
-  price_per_student Float
-  billing_cycle     String
-  created_at        DateTime
-  updated_at        DateTime
-
-  TenantSubscriptions TenantSubscriptions[]
-  InstitutionBilling  InstitutionBilling[]
+  start_date        DateTime? @db.Date
+  end_date          DateTime? @db.Date
+  price_per_student Decimal   @db.Decimal(10, 2)
+  billing_cycle     String    @db.VarChar(50)
+  created_at        DateTime? @default(now()) @db.DateTime(0)
+  updated_at        DateTime? @default(now()) @db.DateTime(0)
 }
 
-model Tenants {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  name          String
-  contact_email String
-  phone         String
-  address       String
-  gst           String
-  created_at    DateTime
-  updated_at    DateTime
-
-  Branches            Branches[]
-  Users               Users[]
-  Performance         Performance[]
-  TenantSubscriptions TenantSubscriptions[]
+model tenants {
+  id            Int       @id @default(autoincrement())
+  name          String    @db.VarChar(255)
+  contact_email String?   @db.VarChar(255)
+  phone         String?   @db.VarChar(50)
+  address       String?   @db.Text
+  gst           String?   @db.VarChar(100)
+  created_at    DateTime? @default(now()) @db.DateTime(0)
+  updated_at    DateTime? @default(now()) @db.DateTime(0)
 }
 
-model TenantSubscriptions {
-  id                 String   @id @default(auto()) @map("_id") @db.ObjectId
-  subscriptiontierid String
-  start_date         DateTime
-  end_date           DateTime
-  created_at         DateTime
-  updated_at         DateTime
-
-  subscriptiontier SubscriptionTiers @relation(fields: [subscriptiontierid], references: [id])
-  Tenants          Tenants?          @relation(fields: [tenantsId], references: [id])
-  tenantsId        String?
+model tenantsubscriptions {
+  id                 Int       @id @default(autoincrement())
+  tenant_id          Int
+  subscriptiontierid Int
+  start_date         DateTime  @db.Date
+  end_date           DateTime? @db.Date
+  created_at         DateTime? @default(now()) @db.DateTime(0)
+  updated_at         DateTime? @default(now()) @db.DateTime(0)
 }
 
-model Branches {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  name          String
-  contact_email String?
-  phone         String?
-  address       String?
-  gst           String?
-  tenant_id     String
-  created_at    DateTime
-  updated_at    DateTime
-
-  Tenant             Tenants              @relation(fields: [tenant_id], references: [id])
-  Batches            Batches[]
-  Products           Products[]
-  Staff              Staff[]
-  Invoices           Invoices[]
-  Notifications      Notifications[]
-  InstitutionBilling InstitutionBilling[]
-  StaffMappings      StaffMappings[]
-  Students           Students[]
+model users {
+  id         Int       @id @default(autoincrement())
+  tenant_id  Int?
+  name       String    @db.VarChar(255)
+  email      String    @unique(map: "email") @db.VarChar(255)
+  password   String    @db.VarChar(255)
+  role       String    @db.VarChar(50)
+  is_active  Boolean?  @default(true)
+  created_at DateTime? @default(now()) @db.DateTime(0)
+  updated_at DateTime? @default(now()) @db.DateTime(0)
 }
 
-model Users {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  tenant_id  String?
-  name       String   @unique
-  email      String   @unique
-  password   String
-  role       String
-  is_active  Boolean
-  created_at DateTime
-  updated_at DateTime
-
-  Tenant        Tenants?        @relation(fields: [tenant_id], references: [id])
-  Notifications Notifications[] @relation("NotificationCreator")
-  Staff         Staff[]
-}
-
-model Batches {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  name       String
-  branch_id  String
-  weekdays   String
-  start_time DateTime
-  end_time   DateTime
-  status     String
-  created_at DateTime
-  updated_at DateTime
-
-  Branch            Branches            @relation(fields: [branch_id], references: [id])
-  StaffMappings     StaffMappings[]
-  EnrollmentBatches EnrollmentBatches[]
-  Attendance        Attendance[]
-}
-
-model PaymentOptions {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  name       String
-  created_at DateTime
-  updated_at DateTime
-
-  EnrollmentPaymentDetails EnrollmentPaymentDetails[]
-}
-
-model Products {
-  id           String   @id @default(auto()) @map("_id") @db.ObjectId
-  branch_id    String
-  name         String
-  description  String
-  max_classes  Int
-  comp_classes Int
-  start_date   DateTime
-  end_date     DateTime
-  created_at   DateTime
-  updated_at   DateTime
-
-  Branch        Branches        @relation(fields: [branch_id], references: [id])
-  ProductFees   ProductFees[]
-  StaffMappings StaffMappings[]
-  Enrollments   Enrollments[]
-  Invoices      Invoices[]
-}
-
-model ProductFees {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  product_id String
-  fee        Float
-  start_date DateTime
-  end_date   DateTime
-  created_at DateTime
-  updated_at DateTime
-
-  Product Products @relation(fields: [product_id], references: [id])
-}
-
-model Staff {
-  id             String   @id @default(auto()) @map("_id") @db.ObjectId
-  name           String
-  qualification  String
-  experience     String
-  specialization String
-  salary         Float
-  start_date     DateTime
-  end_date       DateTime
-  branch_id      String
-  user_id        String
-  created_at     DateTime
-  updated_at     DateTime
-
-  Branch        Branches        @relation(fields: [branch_id], references: [id])
-  User          Users           @relation(fields: [user_id], references: [id])
-  StaffMappings StaffMappings[]
-  Attendance    Attendance[]
-  Performance   Performance[]
-}
-
-model StaffMappings {
-  id         String @id @default(auto()) @map("_id") @db.ObjectId
-  branch_id  String
-  batch_id   String
-  product_id String
-  staff_id   String
-
-  Branch  Branches @relation(fields: [branch_id], references: [id])
-  Batch   Batches  @relation(fields: [batch_id], references: [id])
-  Product Products @relation(fields: [product_id], references: [id])
-  Staff   Staff    @relation(fields: [staff_id], references: [id])
-}
-
-model Students {
-  id               String   @id @default(auto()) @map("_id") @db.ObjectId
-  branch_id        String
-  name             String
-  email            String
-  phone            String
-  address          String
-  guardian_name    String
-  guardian_contact String
-  status           String
-  created_at       DateTime
-  updated_at       DateTime
-
-  Branch      Branches      @relation(fields: [branch_id], references: [id])
-  Enrollments Enrollments[]
-  Invoices    Invoices[]
-}
-
-model Enrollments {
-  id             String    @id @default(auto()) @map("_id") @db.ObjectId
-  product_id     String
-  student_id     String
-  enrolled_date  DateTime
-  completed_date DateTime?
-  dropped_date   DateTime?
-  start_date     DateTime
-  end_date       DateTime
-  status         String
-  created_at     DateTime
-  updated_at     DateTime
-
-  Product                  Products                   @relation(fields: [product_id], references: [id])
-  Student                  Students                   @relation(fields: [student_id], references: [id])
-  EnrollmentPaymentDetails EnrollmentPaymentDetails[]
-  EnrollmentBatches        EnrollmentBatches[]
-  Attendance               Attendance[]
-  Performance              Performance[]
-}
-
-model EnrollmentPaymentDetails {
-  id               String   @id @default(auto()) @map("_id") @db.ObjectId
-  enrollment_id    String
-  paymentoption_id String
-  created_at       DateTime
-  updated_at       DateTime
-
-  Enrollment    Enrollments    @relation(fields: [enrollment_id], references: [id])
-  PaymentOption PaymentOptions @relation(fields: [paymentoption_id], references: [id])
-}
-
-model EnrollmentBatches {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  enrollment_id String
-  batch_id      String
-  created_at    DateTime
-  updated_at    DateTime
-
-  Enrollment Enrollments @relation(fields: [enrollment_id], references: [id])
-  Batch      Batches     @relation(fields: [batch_id], references: [id])
-}
-
-model Attendance {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  batch_id      String
-  enrollment_id String
-  date          DateTime
-  status        String
-  marked_by     String
-  created_at    DateTime
-
-  Batch      Batches     @relation(fields: [batch_id], references: [id])
-  Enrollment Enrollments @relation(fields: [enrollment_id], references: [id])
-  Staff      Staff       @relation(fields: [marked_by], references: [id])
-}
-
-model Performance {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  tenant_id     String
-  enrollment_id String
-  marks         Float
-  remarks       String
-  evaluated_by  String
-  created_at    DateTime
-
-  Tenant     Tenants     @relation(fields: [tenant_id], references: [id])
-  Enrollment Enrollments @relation(fields: [enrollment_id], references: [id])
-  Staff      Staff       @relation(fields: [evaluated_by], references: [id])
-}
-
-model Invoices {
-  id           String   @id @default(auto()) @map("_id") @db.ObjectId
-  branch_id    String
-  student_id   String
-  product_id   String
-  period_start DateTime
-  period_end   DateTime
-  due_date     DateTime
-  amount       Float
-  status       String
-  created_at   DateTime
-  updated_at   DateTime
-
-  Branch   Branches   @relation(fields: [branch_id], references: [id])
-  Student  Students   @relation(fields: [student_id], references: [id])
-  Product  Products   @relation(fields: [product_id], references: [id])
-  Payments Payments[]
-}
-
-model Payments {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  invoice_id  String
-  paid_on     DateTime
-  transaction String
-  comments    String
-  created_at  DateTime
-  updated_at  DateTime
-
-  Invoice Invoices @relation(fields: [invoice_id], references: [id])
-}
-
-model InstitutionBilling {
-  id                    String    @id @default(auto()) @map("_id") @db.ObjectId
-  branch_id             String
-  subscriptiontier_id   String
-  month_year            String
-  total_active_students Int
-  amount_per_student    Float
-  total_amount          Float
-  status                String
-  generated_at          DateTime
-  paid_at               DateTime?
-
-  Branch           Branches          @relation(fields: [branch_id], references: [id])
-  SubscriptionTier SubscriptionTiers @relation(fields: [subscriptiontier_id], references: [id])
-}
-
-model Notifications {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  branch_id  String
-  title      String
-  message    String
-  type       String
-  created_by String
-  created_at DateTime
-
-  Branch Branches @relation(fields: [branch_id], references: [id])
-  User   Users    @relation(fields: [created_by], references: [id], name: "NotificationCreator")
+enum batches_medium {
+  Offline
+  Online
+  Hybrid
 }

@@ -40,10 +40,7 @@ export interface GetUserInfoResponse {
   name: string;
   email: string;
   role: string;
-  Tenant: {
-    id: string;
-    name: string;
-  };
+  tenant_id: number
 }
 
 export interface MonthlyRevenue {
@@ -197,7 +194,7 @@ export interface CreateSubscriptionTierResponse {
 }
 
 export interface GetBranchByTenantRequest {
-  tenant_id: string;
+  tenant_id: number;
 }
 
 export interface GetBranchByTenantResponse {
@@ -207,13 +204,13 @@ export interface GetBranchByTenantResponse {
   phone?: string | null;
   address?: string | null;
   gst?: string | null;
-  tenant_id: string;
+  tenant_id: number;
   created_at: Date;
   updated_at: Date;
 }
 
 export interface CreateBranchRequest {
-  tenant_id: string;
+  tenant_id: number;
   name: string;
   contact_email?: string;
   phone?: string;
@@ -223,7 +220,7 @@ export interface CreateBranchRequest {
 
 export interface CreateBranchResponse {
   id: string;
-  tenant_id: string;
+  tenant_id: number;
   name: string;
   contact_email?: string | null;
   phone?: string | null;
@@ -244,7 +241,7 @@ export interface UpdateBranchRequest {
 
 export interface UpdateBranchResponse {
   id: string;
-  tenant_id: string;
+  tenant_id: number;
   name: string;
   contact_email?: string | null;
   phone?: string | null;

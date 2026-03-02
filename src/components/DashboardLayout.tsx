@@ -53,7 +53,7 @@ export default function DashboardLayout({
       const data = await res.json();
 
       if (data) {
-        setUser(data);
+        setUser(data.data);
       }
     } catch (error) {
       console.log("fetchUser error:", error);
@@ -169,11 +169,11 @@ export default function DashboardLayout({
 
           <div className="flex items-center gap-5">
             {/* Notifications */}
-            {user?.Tenant?.name && (
+            {/* {user?.tenant_id && (
               <div>
                 <h1 className="text-3xl font-bold">{user?.Tenant.name}</h1>
               </div>
-            )}
+            )} */}
             {showNotifications && (
               <button
                 className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors"

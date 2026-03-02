@@ -17,15 +17,15 @@ export async function GET() {
     ] = await Promise.all([
       prisma.tenants.count(),
       prisma.students.count({ where: { status: 'ACTIVE' } }),
-      prisma.tenantSubscriptions.findMany({
+      prisma.tenantsubscriptions.findMany({
         distinct: ['subscriptiontierid'],
         select: { subscriptiontierid: true },
       }),
-      prisma.institutionBilling.aggregate({
+      prisma.institutionbilling.aggregate({
         where: { status: 'PAID' },
         _sum: { total_amount: true },
       }),
-      prisma.institutionBilling.groupBy({
+      prisma.institutionbilling.groupBy({
         by: ['month_year'],
         where: { status: 'PAID' },
         _sum: { total_amount: true },
@@ -35,11 +35,11 @@ export async function GET() {
         by: ['status'],
         _count: { status: true },
       }),
-      prisma.tenantSubscriptions.groupBy({
+      prisma.tenantsubscriptions.groupBy({
         by: ['subscriptiontierid'],
         _count: { subscriptiontierid: true },
       }),
-      prisma.institutionBilling.count({ where: { status: 'OVERDUE' } }),
+      prisma.institutionbilling.count({ where: { status: 'OVERDUE' } }),
       prisma.products.count(),
     ]);
 
@@ -53,7 +53,7 @@ export async function GET() {
     };
 
     const monthlyRevenueData = monthlyRevenueRaw.map(d => ({
-      month: monthsMap[d.month_year.slice(5,7)] || d.month_year,
+      month: monthsMap[d.month_year!.slice(5,7)] || d.month_year,
       revenue: d._sum.total_amount ?? 0,
     }));
 
@@ -64,13 +64,13 @@ export async function GET() {
     };
 
     const enrollmentStatusData = enrollmentStatusRaw.map(d => ({
-      name: d.status.charAt(0).toUpperCase() + d.status.toLowerCase().slice(1),
+      name: d.status!.charAt(0).toUpperCase() + d.status!.toLowerCase().slice(1),
       value: d._count.status,
-      color: colors[d.status.toUpperCase()] ?? '#999',
+      color: colors[d.status!.toUpperCase()] ?? '#999',
     }));
 
     const tierIds = institutionsByTierRaw.map(d => d.subscriptiontierid);
-    const tiers = await prisma.subscriptionTiers.findMany({
+    const tiers = await prisma.subscriptiontiers.findMany({
       where: { id: { in: tierIds } },
     });
 

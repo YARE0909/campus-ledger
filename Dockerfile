@@ -1,34 +1,29 @@
-# Build stage
-FROM node:20-alpine AS builder
-
+# ---- deps ----
+FROM node:20-alpine AS deps
 WORKDIR /app
-
-ARG NEXT_PUBLIC_API
-ENV NEXT_PUBLIC_API=$NEXT_PUBLIC_API
-
 COPY package*.json ./
-RUN npm install --ignore-scripts
+RUN npm install
 
+# ---- builder ----
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-RUN npx prisma generate || true
+RUN npx prisma generate
 RUN npm run build
 
-# Production stage
-FROM node:20-alpine
-
+# ---- runner ----
+FROM node:20-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
-COPY package*.json ./
-RUN npm install --omit=dev --ignore-scripts
-
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
-
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/node_modules ./node_modules
+
+RUN npx prisma generate
 
 EXPOSE 3000
-
 CMD ["node", "server.js"]

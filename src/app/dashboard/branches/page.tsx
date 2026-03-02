@@ -35,9 +35,9 @@ export default function BranchesPage() {
   const fetchBranches = async () => {
     setLoading(true);
     try {
-      if (!user || !user.Tenant?.id) return;
+      if (!user || !user.tenant_id) return;
       const res = await apiHandler(endpoints.getBranchByTenant, {
-        tenant_id: user?.Tenant.id,
+        tenant_id: user?.tenant_id,
       });
       const { status, data, error, errorMessage, message } = res;
       if (!error && data) setBranches(data);
@@ -124,7 +124,7 @@ export default function BranchesPage() {
       } else {
         const res = await apiHandler(endpoints.createBranch, {
           name: formData.name,
-          tenant_id: user?.Tenant.id!,
+          tenant_id: user?.tenant_id!,
           contact_email: formData.contact_email,
           phone: formData.phone,
           address: formData.address,

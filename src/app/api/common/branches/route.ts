@@ -3,15 +3,15 @@ import { prisma } from "@/lib/prisma";
 import { ApiResponse } from "@/lib/api/types";
 
 export interface Branch {
-  id: string;
+  tenant_id: number;
+  id: number;
   name: string;
-  contact_email?: string | null;
-  phone?: string | null;
-  address?: string | null;
-  gst?: string | null;
-  tenant_id: string;
-  created_at: Date;
-  updated_at: Date;
+  contact_email: string | null;
+  phone: string | null;
+  address: string | null;
+  gst: string | null;
+  created_at: Date | null;
+  updated_at: Date | null;
 }
 
 // GET: Fetch all branches for a tenant
@@ -29,12 +29,12 @@ export async function GET(req: Request) {
           errorMessage: "tenant_id query parameter is required",
           data: null,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     const branches = await prisma.branches.findMany({
-      where: { tenant_id },
+      where: { tenant_id: Number(tenant_id) },
       orderBy: { name: "asc" },
     });
 
@@ -57,7 +57,7 @@ export async function GET(req: Request) {
         errorMessage: error instanceof Error ? error.message : "Unknown error",
         data: null,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -77,7 +77,7 @@ export async function POST(req: Request) {
           errorMessage: "Missing required fields",
           data: null,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -104,7 +104,7 @@ export async function POST(req: Request) {
         errorMessage: null,
         data: newBranch,
       },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
     console.error("Failed to create branch:", error);
@@ -116,7 +116,7 @@ export async function POST(req: Request) {
         errorMessage: error instanceof Error ? error.message : "Unknown error",
         data: null,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -136,7 +136,7 @@ export async function PUT(req: Request) {
           errorMessage: "Branch ID is required",
           data: null,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -151,7 +151,7 @@ export async function PUT(req: Request) {
           errorMessage: "Branch not found",
           data: null,
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -170,7 +170,7 @@ export async function PUT(req: Request) {
           errorMessage: "No valid fields provided for update",
           data: null,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -189,7 +189,7 @@ export async function PUT(req: Request) {
         errorMessage: null,
         data: updatedBranch,
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error("Failed to update branch:", error);
@@ -201,7 +201,7 @@ export async function PUT(req: Request) {
         errorMessage: error instanceof Error ? error.message : "Unknown error",
         data: null,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -221,7 +221,7 @@ export async function DELETE(req: Request) {
           errorMessage: "Branch ID is required",
           data: null,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -236,7 +236,7 @@ export async function DELETE(req: Request) {
           errorMessage: "Branch not found",
           data: null,
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -250,7 +250,7 @@ export async function DELETE(req: Request) {
         errorMessage: null,
         data: null,
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error("Failed to delete branch:", error);
@@ -262,7 +262,7 @@ export async function DELETE(req: Request) {
         errorMessage: error instanceof Error ? error.message : "Unknown error",
         data: null,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

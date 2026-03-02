@@ -80,7 +80,9 @@ export default function LoginPage() {
         return;
       }
 
-      const { token, user } = data;
+      console.log({ data });
+
+      const { token, user } = data.data;
 
       setCookie(null, "token", token, {
         maxAge: 60 * 60,
@@ -89,6 +91,8 @@ export default function LoginPage() {
       });
 
       toast.success("Login successful!");
+
+      console.log({ token, user });
 
       if (user.role === "super_admin") {
         router.push("/super-admin");
