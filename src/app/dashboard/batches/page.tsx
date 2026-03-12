@@ -1,7 +1,7 @@
 // app/admin/batches/page.tsx
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Users,
   GraduationCap,
@@ -21,27 +21,21 @@ import Modal, { FormModal } from "@/components/Modal";
 import StatCard from "@/components/StatCard";
 import CustomTimePicker from "@/components/CustomTimePicker";
 
-// Types
+type BatchStatus = "Draft" | "Open" | "Closed" | "Ongoing" | "Completed" | "Cancelled";
+type BatchMedium = "Online" | "Offline" | "Hybrid";
+
 interface Batch {
   id: string;
   name: string;
-  course: string;
-  courseId: string;
-  branchId?: string;
-  startDate: string;
-  endDate: string;
-  schedule: string;
+  branchId: string;
+  weekdays?: string;
+  startTime?: string;
+  endTime?: string;
   maxStudents: number;
   enrolledStudents: number;
-  teachers: string[];
-  status: "Active" | "Upcoming" | "Completed";
-  medium: "Online" | "Offline" | "Hybrid";
-  venue?: string;
-}
-
-interface Product {
-  id: string;
-  name: string;
+  medium: BatchMedium;
+  status: BatchStatus;
+  teachers?: string[];
 }
 
 interface Instructor {
@@ -57,140 +51,113 @@ interface Student {
   enrolledBatches: string[];
 }
 
+interface BatchFormData {
+  name: string;
+  branchId: string;
+  maxStudents: number;
+  medium: BatchMedium;
+  status: BatchStatus;
+  weekdays: string[];
+  startTime: string;
+  endTime: string;
+}
+
+const BRANCHES = [
+  { id: "1", name: "Indiranagar" },
+  { id: "2", name: "HRBR Layout" },
+];
+
+const WEEKDAY_OPTIONS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
+
+function normalizeTimeValue(value?: string | null) {
+  if (!value) return "";
+  if (value.includes("T")) {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
+    return date.toISOString().slice(11, 16);
+  }
+  if (value.length >= 5) return value.slice(0, 5);
+  return value;
+}
+
+function formatTime(value?: string) {
+  const time = normalizeTimeValue(value);
+  if (!time) return "";
+  return time;
+}
+
+function formatSchedule(weekdays?: string, startTime?: string, endTime?: string) {
+  const days = weekdays?.trim() ? weekdays : "No weekdays";
+  const start = formatTime(startTime);
+  const end = formatTime(endTime);
+  if (start && end) return `${days} | ${start} - ${end}`;
+  if (start) return `${days} | ${start}`;
+  if (end) return `${days} | ${end}`;
+  return days;
+}
+
+function getBranchName(branchId: string) {
+  return BRANCHES.find((b) => b.id === branchId)?.name ?? branchId;
+}
+
+function getStatusStyles(status: string) {
+  switch (status) {
+    case "Open":
+    case "Ongoing":
+      return "bg-green-100 text-green-700";
+    case "Draft":
+      return "bg-gray-100 text-gray-700";
+    case "Closed":
+      return "bg-yellow-100 text-yellow-700";
+    case "Completed":
+      return "bg-blue-100 text-blue-700";
+    case "Cancelled":
+      return "bg-red-100 text-red-700";
+    default:
+      return "bg-gray-100 text-gray-700";
+  }
+}
+
+function getMediumStyles(medium: string) {
+  switch (medium) {
+    case "Online":
+      return "bg-blue-100 text-blue-700";
+    case "Offline":
+      return "bg-green-100 text-green-700";
+    case "Hybrid":
+      return "bg-purple-100 text-purple-700";
+    default:
+      return "bg-gray-100 text-gray-700";
+  }
+}
+
 export default function BatchManagementPage() {
-  // Sample Data (Replace with API calls)
-  const [batches, setBatches] = useState<Batch[]>([
-    {
-      id: "B001",
-      name: "Web Development - Morning Batch",
-      course: "Full Stack Web Development",
-      courseId: "C001",
-      startDate: "2025-11-01",
-      endDate: "2026-02-28",
-      schedule: "Mon-Fri, 9:00 AM - 12:00 PM",
-      maxStudents: 30,
-      enrolledStudents: 25,
-      teachers: ["John Doe", "Jane Smith"],
-      status: "Upcoming",
-      medium: "Hybrid",
-      venue: "Room 101",
-    },
-    {
-      id: "B002",
-      name: "Data Science - Evening Batch",
-      course: "Data Science & Analytics",
-      courseId: "C002",
-      startDate: "2025-10-15",
-      endDate: "2026-01-15",
-      schedule: "Mon-Wed-Fri, 6:00 PM - 9:00 PM",
-      maxStudents: 25,
-      enrolledStudents: 22,
-      teachers: ["Mike Johnson"],
-      status: "Active",
-      medium: "Online",
-    },
-    {
-      id: "B003",
-      name: "Mobile Development - Weekend Batch",
-      course: "Mobile App Development",
-      courseId: "C003",
-      startDate: "2025-09-01",
-      endDate: "2025-10-10",
-      schedule: "Sat-Sun, 10:00 AM - 2:00 PM",
-      maxStudents: 20,
-      enrolledStudents: 20,
-      teachers: ["Sarah Williams"],
-      status: "Completed",
-      medium: "Offline",
-      venue: "Lab 205",
-    },
-    {
-      id: "B004",
-      name: "UI/UX Design - Morning Batch",
-      course: "UI/UX Design",
-      courseId: "C004",
-      startDate: "2025-10-20",
-      endDate: "2025-12-20",
-      schedule: "Mon-Fri, 10:00 AM - 1:00 PM",
-      maxStudents: 25,
-      enrolledStudents: 18,
-      teachers: ["Jane Smith"],
-      status: "Active",
-      medium: "Offline",
-      venue: "Design Studio 1",
-    },
-    {
-      id: "B005",
-      name: "Cybersecurity - Evening Batch",
-      course: "Cybersecurity Fundamentals",
-      courseId: "C005",
-      startDate: "2025-11-10",
-      endDate: "2026-02-15",
-      schedule: "Tue-Thu, 6:00 PM - 9:00 PM",
-      maxStudents: 20,
-      enrolledStudents: 16,
-      teachers: ["Rajesh Kumar"],
-      status: "Upcoming",
-      medium: "Online",
-    },
-    {
-      id: "B006",
-      name: "Cloud Computing - Weekend Batch",
-      course: "Cloud Computing with AWS",
-      courseId: "C006",
-      startDate: "2025-12-01",
-      endDate: "2026-03-01",
-      schedule: "Sat-Sun, 9:00 AM - 1:00 PM",
-      maxStudents: 30,
-      enrolledStudents: 12,
-      teachers: ["Priya Sharma"],
-      status: "Upcoming",
-      medium: "Hybrid",
-      venue: "Lab 301",
-    },
-    {
-      id: "B007",
-      name: "Machine Learning - Intensive Batch",
-      course: "Machine Learning & AI",
-      courseId: "C007",
-      startDate: "2025-09-15",
-      endDate: "2025-12-15",
-      schedule: "Mon-Fri, 2:00 PM - 5:00 PM",
-      maxStudents: 35,
-      enrolledStudents: 32,
-      teachers: ["Amit Patel"],
-      status: "Active",
-      medium: "Online",
-    },
-    {
-      id: "B008",
-      name: "Digital Marketing - Fast Track",
-      course: "Digital Marketing Essentials",
-      courseId: "C008",
-      startDate: "2025-08-01",
-      endDate: "2025-09-15",
-      schedule: "Mon-Fri, 11:00 AM - 1:00 PM",
-      maxStudents: 40,
-      enrolledStudents: 38,
-      teachers: ["Sneha Reddy"],
-      status: "Completed",
-      medium: "Offline",
-      venue: "Room 203",
-    },
-  ]);
+  const [batches, setBatches] = useState<Batch[]>([]);
+  const [selectedBatch, setSelectedBatch] = useState<Batch | null>(null);
+  const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
 
-  const [courses] = useState<Product[]>([
-    { id: "C001", name: "Full Stack Web Development" },
-    { id: "C002", name: "Data Science & Analytics" },
-    { id: "C003", name: "Mobile App Development" },
-    { id: "C004", name: "UI/UX Design" },
-    { id: "C005", name: "Cybersecurity Fundamentals" },
-    { id: "C006", name: "Cloud Computing with AWS" },
-    { id: "C007", name: "Machine Learning & AI" },
-    { id: "C008", name: "Digital Marketing Essentials" },
-  ]);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isAssignStudentsModalOpen, setIsAssignStudentsModalOpen] = useState(false);
+  const [isAssignTeachersModalOpen, setIsAssignTeachersModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [teachers] = useState<Instructor[]>([
+  const [formData, setFormData] = useState<BatchFormData>({
+    name: "",
+    branchId: "",
+    maxStudents: 30,
+    medium: "Online",
+    status: "Draft",
+    weekdays: [],
+    startTime: "",
+    endTime: "",
+  });
+
+  const [selectedTeachers, setSelectedTeachers] = useState<string[]>([]);
+  const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
+
+  const teachers: Instructor[] = [
     { id: "T001", name: "John Doe", email: "john@example.com" },
     { id: "T002", name: "Jane Smith", email: "jane@example.com" },
     { id: "T003", name: "Mike Johnson", email: "mike@example.com" },
@@ -199,100 +166,71 @@ export default function BatchManagementPage() {
     { id: "T006", name: "Priya Sharma", email: "priya@example.com" },
     { id: "T007", name: "Amit Patel", email: "amit@example.com" },
     { id: "T008", name: "Sneha Reddy", email: "sneha@example.com" },
-  ]);
+  ];
 
-  const [students] = useState<Student[]>([
-    {
-      id: "S001",
-      name: "Alex Brown",
-      email: "alex@example.com",
-      enrolledBatches: ["B001"],
-    },
-    {
-      id: "S002",
-      name: "Emma Davis",
-      email: "emma@example.com",
-      enrolledBatches: ["B002"],
-    },
-    {
-      id: "S003",
-      name: "Oliver Wilson",
-      email: "oliver@example.com",
-      enrolledBatches: ["B001", "B002"],
-    },
-    {
-      id: "S004",
-      name: "Sophia Taylor",
-      email: "sophia@example.com",
-      enrolledBatches: ["B003"],
-    },
-    {
-      id: "S005",
-      name: "Liam Martinez",
-      email: "liam@example.com",
-      enrolledBatches: ["B001", "B004"],
-    },
-    {
-      id: "S006",
-      name: "Ava Thomas",
-      email: "ava@example.com",
-      enrolledBatches: ["B002"],
-    },
-    {
-      id: "S007",
-      name: "Noah Anderson",
-      email: "noah@example.com",
-      enrolledBatches: ["B004"],
-    },
-    {
-      id: "S008",
-      name: "Mia Hernandez",
-      email: "mia@example.com",
-      enrolledBatches: ["B003"],
-    },
-  ]);
+  const students: Student[] = [
+    { id: "S001", name: "Alex Brown", email: "alex@example.com", enrolledBatches: ["B001"] },
+    { id: "S002", name: "Emma Davis", email: "emma@example.com", enrolledBatches: ["B002"] },
+    { id: "S003", name: "Oliver Wilson", email: "oliver@example.com", enrolledBatches: ["B001", "B002"] },
+    { id: "S004", name: "Sophia Taylor", email: "sophia@example.com", enrolledBatches: ["B003"] },
+    { id: "S005", name: "Liam Martinez", email: "liam@example.com", enrolledBatches: ["B001", "B004"] },
+    { id: "S006", name: "Ava Thomas", email: "ava@example.com", enrolledBatches: ["B002"] },
+    { id: "S007", name: "Noah Anderson", email: "noah@example.com", enrolledBatches: ["B004"] },
+    { id: "S008", name: "Mia Hernandez", email: "mia@example.com", enrolledBatches: ["B003"] },
+  ];
 
-  // Modal States
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-  const [isAssignStudentsModalOpen, setIsAssignStudentsModalOpen] =
-    useState(false);
-  const [isAssignTeachersModalOpen, setIsAssignTeachersModalOpen] =
-    useState(false);
-  const [selectedBatch, setSelectedBatch] = useState<Batch | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
+  async function fetchBatches() {
+    const res = await fetch("/api/common/batches", {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
 
-  // Form States
-  const [formData, setFormData] = useState({
-    name: "",
-    courseId: "",
-    branchId: "",
-    startDate: "",
-    endDate: "",
-    schedule: "",
-    maxStudents: 30,
-    medium: "Online" as "Online" | "Offline" | "Hybrid",
-    venue: "",
-    scheduleType: "",
-    weekdays: [""],
-    startTime: "",
-    endTime: "",
-  });
+    const json = await res.json();
 
-  const [selectedTeachers, setSelectedTeachers] = useState<string[]>([]);
-  const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
+    const normalized: Batch[] = Array.isArray(json?.data)
+      ? json.data.map((item: any) => ({
+          id: String(item.id),
+          name: String(item.name ?? ""),
+          branchId: String(item.branchId ?? item.branch_id ?? ""),
+          weekdays: item.weekdays ? String(item.weekdays) : "",
+          startTime: normalizeTimeValue(item.startTime ?? item.start_time),
+          endTime: normalizeTimeValue(item.endTime ?? item.end_time),
+          maxStudents: Number(item.maxStudents ?? item.max_students ?? 0),
+          enrolledStudents: Number(item.enrolledStudents ?? item.enrollmentCount ?? 0),
+          medium: (item.medium ?? "Online") as BatchMedium,
+          status: (item.status ?? "Draft") as BatchStatus,
+          teachers: Array.isArray(item.teachers) ? item.teachers : [],
+        }))
+      : [];
 
-  // Stats
-  const stats = {
-    totalBatches: batches.length,
-    activeBatches: batches.filter((b) => b.status === "Active").length,
-    totalStudents: batches.reduce((sum, b) => sum + b.enrolledStudents, 0),
-    totalTeachers: new Set(batches.flatMap((b) => b.teachers)).size,
-  };
+    setBatches(normalized);
+  }
 
-  // Table Columns
+  useEffect(() => {
+    fetchBatches();
+  }, []);
+
+  const stats = useMemo(() => {
+    const totalTeachers = new Set(
+      batches.flatMap((batch) => batch.teachers ?? []),
+    ).size;
+
+    return {
+      totalBatches: batches.length,
+      activeBatches: batches.filter((b) => b.status === "Open" || b.status === "Ongoing").length,
+      totalStudents: batches.reduce((sum, b) => sum + (Number.isFinite(b.enrolledStudents) ? b.enrolledStudents : 0), 0),
+      averageBatchSize: batches.length
+        ? Math.round(
+            batches.reduce((sum, b) => sum + (Number.isFinite(b.enrolledStudents) ? b.enrolledStudents : 0), 0) /
+              batches.length,
+          )
+        : 0,
+      totalTeachers,
+      unassignedStudents: students.length,
+      unassignedInstructors: teachers.length - totalTeachers,
+    };
+  }, [batches]);
+
   const columns: Column<Batch>[] = [
     {
       key: "id",
@@ -306,19 +244,21 @@ export default function BatchManagementPage() {
       render: (batch) => (
         <div>
           <p className="font-medium text-gray-900">{batch.name}</p>
-          <p className="text-sm text-gray-500">{batch.course}</p>
+          <p className="text-sm text-gray-500">{getBranchName(batch.branchId)}</p>
         </div>
       ),
     },
     {
-      key: "schedule",
+      key: "weekdays",
       label: "Schedule",
       render: (batch) => (
         <div className="text-sm">
-          <p className="text-gray-900">{batch.schedule}</p>
+          <p className="text-gray-900 flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-gray-400" />
+            {batch.weekdays || "No weekdays"}
+          </p>
           <p className="text-gray-500">
-            {new Date(batch.startDate).toLocaleDateString("en-IN")} -{" "}
-            {new Date(batch.endDate).toLocaleDateString("en-IN")}
+            {formatTime(batch.startTime)} - {formatTime(batch.endTime)}
           </p>
         </div>
       ),
@@ -327,28 +267,29 @@ export default function BatchManagementPage() {
       key: "enrolledStudents",
       label: "Students",
       sortable: true,
-      render: (batch) => (
-        <div>
-          <p className="text-sm font-medium text-gray-900">
-            {batch.enrolledStudents} / {batch.maxStudents}
-          </p>
-          <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-            <div
-              className="bg-indigo-600 h-2 rounded-full"
-              style={{
-                width: `${(batch.enrolledStudents / batch.maxStudents) * 100}%`,
-              }}
-            />
+      render: (batch) => {
+        const percent = batch.maxStudents > 0 ? (batch.enrolledStudents / batch.maxStudents) * 100 : 0;
+        return (
+          <div>
+            <p className="text-sm font-medium text-gray-900">
+              {batch.enrolledStudents} / {batch.maxStudents}
+            </p>
+            <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
+              <div
+                className="bg-indigo-600 h-2 rounded-full"
+                style={{ width: `${Math.min(percent, 100)}%` }}
+              />
+            </div>
           </div>
-        </div>
-      ),
+        );
+      },
     },
     {
       key: "teachers",
       label: "Instructors",
       render: (batch) => (
         <div className="text-sm text-gray-700">
-          {batch.teachers.length > 0
+          {batch.teachers && batch.teachers.length > 0
             ? batch.teachers.join(", ")
             : "Not assigned"}
         </div>
@@ -359,13 +300,7 @@ export default function BatchManagementPage() {
       label: "Medium",
       render: (batch) => (
         <span
-          className={`px-2 py-1 text-xs font-medium rounded-full ${
-            batch.medium === "Online"
-              ? "bg-blue-100 text-blue-700"
-              : batch.medium === "Offline"
-              ? "bg-green-100 text-green-700"
-              : "bg-purple-100 text-purple-700"
-          }`}
+          className={`px-2 py-1 text-xs font-medium rounded-full ${getMediumStyles(batch.medium)}`}
         >
           {batch.medium}
         </span>
@@ -377,13 +312,7 @@ export default function BatchManagementPage() {
       sortable: true,
       render: (batch) => (
         <span
-          className={`px-2 py-1 text-xs font-medium rounded-full ${
-            batch.status === "Active"
-              ? "bg-green-100 text-green-700"
-              : batch.status === "Upcoming"
-              ? "bg-yellow-100 text-yellow-700"
-              : "bg-gray-100 text-gray-700"
-          }`}
+          className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusStyles(batch.status)}`}
         >
           {batch.status}
         </span>
@@ -391,15 +320,17 @@ export default function BatchManagementPage() {
     },
   ];
 
-  // Filters
   const filters: Filter[] = [
     {
       key: "status",
       label: "All Status",
       options: [
-        { value: "Active", label: "Active" },
-        { value: "Upcoming", label: "Upcoming" },
+        { value: "Draft", label: "Draft" },
+        { value: "Open", label: "Open" },
+        { value: "Ongoing", label: "Ongoing" },
+        { value: "Closed", label: "Closed" },
         { value: "Completed", label: "Completed" },
+        { value: "Cancelled", label: "Cancelled" },
       ],
     },
     {
@@ -412,14 +343,216 @@ export default function BatchManagementPage() {
       ],
     },
     {
-      key: "courseId",
-      label: "All Products",
-      options: courses.map((c) => ({ value: c.id, label: c.name })),
+      key: "branchId",
+      label: "All Branches",
+      options: BRANCHES.map((b) => ({ value: b.id, label: b.name })),
     },
   ];
 
+  function resetForm() {
+    setFormData({
+      name: "",
+      branchId: "",
+      maxStudents: 30,
+      medium: "Online",
+      status: "Draft",
+      weekdays: [],
+      startTime: "",
+      endTime: "",
+    });
+    setSelectedTeachers([]);
+    setSelectedStudents([]);
+  }
+
+  function openEditModal(batch: Batch) {
+    setSelectedBatch(batch);
+    setFormData({
+      name: batch.name,
+      branchId: batch.branchId,
+      maxStudents: batch.maxStudents,
+      medium: batch.medium,
+      status: batch.status,
+      weekdays: batch.weekdays ? batch.weekdays.split(",").map((d) => d.trim()).filter(Boolean) : [],
+      startTime: normalizeTimeValue(batch.startTime),
+      endTime: normalizeTimeValue(batch.endTime),
+    });
+    setIsEditModalOpen(true);
+  }
+
+  function openViewModal(batch: Batch) {
+    setSelectedBatch(batch);
+    setIsViewModalOpen(true);
+  }
+
+  function openAssignTeachersModal(batch: Batch) {
+    setSelectedBatch(batch);
+    const teacherIds = teachers
+      .filter((t) => (batch.teachers ?? []).includes(t.name))
+      .map((t) => t.id);
+    setSelectedTeachers(teacherIds);
+    setIsAssignTeachersModalOpen(true);
+  }
+
+  function openAssignStudentsModal(batch: Batch) {
+    setSelectedBatch(batch);
+    setSelectedStudents([]);
+    setIsAssignStudentsModalOpen(true);
+  }
+
+  async function handleCreateBatch(e: React.FormEvent) {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      const payload = {
+        name: formData.name,
+        branchId: formData.branchId,
+        branch_id: Number(formData.branchId),
+        maxStudents: Number(formData.maxStudents),
+        max_students: Number(formData.maxStudents),
+        medium: formData.medium,
+        status: formData.status,
+        weekdays: formData.weekdays,
+        startTime: formData.startTime,
+        endTime: formData.endTime,
+        start_time: formData.startTime,
+        end_time: formData.endTime,
+      };
+
+      const res = await fetch("/api/common/batch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to create batch");
+      }
+
+      await fetchBatches();
+      setIsCreateModalOpen(false);
+      resetForm();
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function handleEditBatch(e: React.FormEvent) {
+    e.preventDefault();
+    if (!selectedBatch) return;
+
+    setIsSubmitting(true);
+
+    try {
+      const payload = {
+        id: selectedBatch.id,
+        name: formData.name,
+        branchId: formData.branchId,
+        branch_id: Number(formData.branchId),
+        maxStudents: Number(formData.maxStudents),
+        max_students: Number(formData.maxStudents),
+        medium: formData.medium,
+        status: formData.status,
+        weekdays: formData.weekdays,
+        startTime: formData.startTime,
+        endTime: formData.endTime,
+        start_time: formData.startTime,
+        end_time: formData.endTime,
+      };
+
+      const res = await fetch("/api/common/batch", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to update batch");
+      }
+
+      await fetchBatches();
+      setIsEditModalOpen(false);
+      setSelectedBatch(null);
+      resetForm();
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function handleDeleteBatch(batchId: string) {
+    if (!confirm("Delete batch?")) return;
+
+    setIsSubmitting(true);
+    try {
+      const res = await fetch("/api/common/batch", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: batchId }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to delete batch");
+      }
+
+      await fetchBatches();
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  function handleAssignTeachers(e: React.FormEvent) {
+    e.preventDefault();
+    if (!selectedBatch) return;
+
+    setIsSubmitting(true);
+
+    setBatches((prev) =>
+      prev.map((batch) =>
+        batch.id === selectedBatch.id
+          ? {
+              ...batch,
+              teachers: selectedTeachers.map(
+                (tid) => teachers.find((t) => t.id === tid)?.name || "",
+              ),
+            }
+          : batch,
+      ),
+    );
+
+    setIsAssignTeachersModalOpen(false);
+    setSelectedBatch(null);
+    setSelectedTeachers([]);
+    setIsSubmitting(false);
+  }
+
+  function handleAssignStudents(e: React.FormEvent) {
+    e.preventDefault();
+    if (!selectedBatch) return;
+
+    setIsSubmitting(true);
+
+    setBatches((prev) =>
+      prev.map((batch) =>
+        batch.id === selectedBatch.id
+          ? {
+              ...batch,
+              enrolledStudents: Math.min(
+                batch.maxStudents,
+                batch.enrolledStudents + selectedStudents.length,
+              ),
+            }
+          : batch,
+      ),
+    );
+
+    setIsAssignStudentsModalOpen(false);
+    setSelectedBatch(null);
+    setSelectedStudents([]);
+    setIsSubmitting(false);
+  }
+
   const renderActions = (batch: Batch) => (
-    <div>
+    <div className="relative">
       <button
         onClick={(e) => {
           e.stopPropagation();
@@ -429,6 +562,7 @@ export default function BatchManagementPage() {
       >
         <MoreVertical className="w-5 h-5 text-gray-600" />
       </button>
+
       {selectedBatchId === batch.id && (
         <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
           <button
@@ -442,6 +576,7 @@ export default function BatchManagementPage() {
             <Eye className="w-4 h-4" />
             View Details
           </button>
+
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -453,6 +588,7 @@ export default function BatchManagementPage() {
             <Edit className="w-4 h-4" />
             Edit Batch
           </button>
+
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -464,6 +600,7 @@ export default function BatchManagementPage() {
             <UserPlus className="w-4 h-4" />
             Assign Instructors
           </button>
+
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -475,6 +612,7 @@ export default function BatchManagementPage() {
             <UserCheck className="w-4 h-4" />
             Assign Students
           </button>
+
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -491,201 +629,16 @@ export default function BatchManagementPage() {
     </div>
   );
 
-  // Handlers
-  const handleCreateBatch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    // Simulate API call
-    setTimeout(() => {
-      const newBatch: Batch = {
-        id: `B${String(batches.length + 1).padStart(3, "0")}`,
-        name: formData.name,
-        course: courses.find((c) => c.id === formData.courseId)?.name || "",
-        courseId: formData.courseId,
-        startDate: formData.startDate,
-        endDate: formData.endDate,
-        schedule: formData.schedule,
-        maxStudents: formData.maxStudents,
-        enrolledStudents: 0,
-        teachers: selectedTeachers,
-        status:
-          new Date(formData.startDate) > new Date() ? "Upcoming" : "Active",
-        medium: formData.medium,
-        venue: formData.venue,
-      };
-
-      setBatches([...batches, newBatch]);
-      setIsCreateModalOpen(false);
-      resetForm();
-      setIsSubmitting(false);
-    }, 1000);
-  };
-
-  const handleEditBatch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedBatch) return;
-
-    setIsSubmitting(true);
-
-    // Simulate API call
-    setTimeout(() => {
-      setBatches(
-        batches.map((batch) =>
-          batch.id === selectedBatch.id
-            ? {
-                ...batch,
-                name: formData.name,
-                courseId: formData.courseId,
-                course:
-                  courses.find((c) => c.id === formData.courseId)?.name || "",
-                startDate: formData.startDate,
-                endDate: formData.endDate,
-                schedule: formData.schedule,
-                maxStudents: formData.maxStudents,
-                medium: formData.medium,
-                venue: formData.venue,
-              }
-            : batch
-        )
-      );
-      setIsEditModalOpen(false);
-      setSelectedBatch(null);
-      resetForm();
-      setIsSubmitting(false);
-    }, 1000);
-  };
-
-  const handleDeleteBatch = (batchId: string) => {
-    if (confirm("Are you sure you want to delete this batch?")) {
-      setBatches(batches.filter((b) => b.id !== batchId));
-    }
-  };
-
-  const handleAssignTeachers = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedBatch) return;
-
-    setIsSubmitting(true);
-
-    setTimeout(() => {
-      setBatches(
-        batches.map((batch) =>
-          batch.id === selectedBatch.id
-            ? {
-                ...batch,
-                teachers: selectedTeachers.map(
-                  (tid) => teachers.find((t) => t.id === tid)?.name || ""
-                ),
-              }
-            : batch
-        )
-      );
-      setIsAssignTeachersModalOpen(false);
-      setSelectedBatch(null);
-      setSelectedTeachers([]);
-      setIsSubmitting(false);
-    }, 1000);
-  };
-
-  const handleAssignStudents = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedBatch) return;
-
-    setIsSubmitting(true);
-
-    setTimeout(() => {
-      setBatches(
-        batches.map((batch) =>
-          batch.id === selectedBatch.id
-            ? {
-                ...batch,
-                enrolledStudents:
-                  batch.enrolledStudents + selectedStudents.length,
-              }
-            : batch
-        )
-      );
-      setIsAssignStudentsModalOpen(false);
-      setSelectedBatch(null);
-      setSelectedStudents([]);
-      setIsSubmitting(false);
-    }, 1000);
-  };
-
-  const openEditModal = (batch: Batch) => {
-    setSelectedBatch(batch);
-    setFormData({
-      name: batch.name,
-      courseId: batch.courseId,
-      branchId: batch.branchId!,
-      startDate: batch.startDate,
-      endDate: batch.endDate,
-      schedule: batch.schedule,
-      maxStudents: batch.maxStudents,
-      medium: batch.medium,
-      venue: batch.venue || "",
-      scheduleType: "",
-      weekdays: [],
-      startTime: "",
-      endTime: "",
-    });
-    setIsEditModalOpen(true);
-  };
-
-  const openViewModal = (batch: Batch) => {
-    setSelectedBatch(batch);
-    setIsViewModalOpen(true);
-  };
-
-  const openAssignTeachersModal = (batch: Batch) => {
-    setSelectedBatch(batch);
-    const teacherIds = teachers
-      .filter((t) => batch.teachers.includes(t.name))
-      .map((t) => t.id);
-    setSelectedTeachers(teacherIds);
-    setIsAssignTeachersModalOpen(true);
-  };
-
-  const openAssignStudentsModal = (batch: Batch) => {
-    setSelectedBatch(batch);
-    setSelectedStudents([]);
-    setIsAssignStudentsModalOpen(true);
-  };
-
-  const resetForm = () => {
-    setFormData({
-      name: "",
-      courseId: "",
-      branchId: "",
-      startDate: "",
-      endDate: "",
-      schedule: "",
-      maxStudents: 30,
-      medium: "Online",
-      venue: "",
-      scheduleType: "",
-      weekdays: [],
-      startTime: "",
-      endTime: "",
-    });
-    setSelectedTeachers([]);
-    setSelectedStudents([]);
-  };
-
   return (
     <div className="space-y-4">
-      {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Batch Management</h1>
           <p className="text-gray-600 mt-2">
-            Create and manage batches, assign students and teachers, and track
-            batch progress
+            Create and manage batches, assign students and teachers, and track batch progress
           </p>
         </div>
 
-        {/* Create Button */}
         <div className="mb-4 flex justify-end">
           <button
             onClick={() => setIsCreateModalOpen(true)}
@@ -697,54 +650,26 @@ export default function BatchManagementPage() {
         </div>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-6">
-        <StatCard
-          icon={BookOpen}
-          label="Active Batches"
-          value={stats.totalBatches}
-          color="blue"
-        />
-        <StatCard
-          icon={Users}
-          label="Total Students"
-          value={stats.totalStudents}
-          color="indigo"
-        />
-        <StatCard
-          icon={User}
-          label="Avg. Batch Students"
-          value={"20"}
-          color="green"
-        />
-        <StatCard
-          icon={Users}
-          label="Unassigned Students"
-          value={stats.totalTeachers}
-          color="red"
-        />
-        <StatCard
-          icon={GraduationCap}
-          label="Unassigned Instructors"
-          value={stats.totalTeachers}
-          color="red"
-        />
+        <StatCard icon={BookOpen} label="Total Batches" value={stats.totalBatches} color="blue" />
+        <StatCard icon={Users} label="Active Batches" value={stats.activeBatches} color="indigo" />
+        <StatCard icon={User} label="Total Students" value={stats.totalStudents} color="green" />
+        <StatCard icon={GraduationCap} label="Assigned Instructors" value={stats.totalTeachers} color="red" />
+        <StatCard icon={Calendar} label="Avg. Batch Students" value={stats.averageBatchSize} color="blue" />
       </div>
 
-      {/* Data Table */}
       <DataTable
         data={batches}
         columns={columns}
         filters={filters}
-        dateFilter={{ key: "startDate", label: "Filter by Start Date" }}
         searchPlaceholder="Search batches..."
-        searchKeys={["name", "course", "id", "schedule"]}
+        searchKeys={["name", "id", "branchId", "weekdays", "medium", "status"]}
         exportFileName="batches"
         itemsPerPage={5}
         renderActions={renderActions}
+        onRowClick={(item: any) => openViewModal(item)}
       />
 
-      {/* Create Batch Modal */}
       <FormModal
         isOpen={isCreateModalOpen}
         onClose={() => {
@@ -758,7 +683,6 @@ export default function BatchManagementPage() {
         size="lg"
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Batch Name */}
           <div className="md:col-span-2">
             <label className="block text-sm font-bold text-gray-700 mb-1">
               Batch Name
@@ -767,13 +691,12 @@ export default function BatchManagementPage() {
               type="text"
               required
               value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="e.g., Web Development - Morning Batch"
+              placeholder="e.g., Morning Batch"
             />
           </div>
+
           <div className="md:col-span-2">
             <label className="block text-sm font-bold text-gray-700 mb-1">
               Branch
@@ -781,40 +704,70 @@ export default function BatchManagementPage() {
             <select
               required
               value={formData.branchId}
-              onChange={(e) =>
-                setFormData({ ...formData, branchId: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, branchId: e.target.value })}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
               <option value="">Select a branch</option>
-              <option key="1" value={1}>
-                Indiranagar
-              </option>
-              <option key="2" value={2}>
-                HRBR Layout
-              </option>
+              {BRANCHES.map((branch) => (
+                <option key={branch.id} value={branch.id}>
+                  {branch.name}
+                </option>
+              ))}
             </select>
           </div>
 
-          {/* Product */}
-          <div className="md:col-span-2">
+          <div>
             <label className="block text-sm font-bold text-gray-700 mb-1">
-              Product
+              Max Students
+            </label>
+            <input
+              type="number"
+              min={1}
+              required
+              value={formData.maxStudents}
+              onChange={(e) =>
+                setFormData({ ...formData, maxStudents: Number(e.target.value) })
+              }
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1">
+              Medium
             </label>
             <select
               required
-              value={formData.courseId}
+              value={formData.medium}
               onChange={(e) =>
-                setFormData({ ...formData, courseId: e.target.value })
+                setFormData({ ...formData, medium: e.target.value as BatchMedium })
               }
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
-              <option value="">Select a course</option>
-              {courses.map((course) => (
-                <option key={course.id} value={course.id}>
-                  {course.name}
-                </option>
-              ))}
+              <option value="Online">Online</option>
+              <option value="Offline">Offline</option>
+              <option value="Hybrid">Hybrid</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1">
+              Status
+            </label>
+            <select
+              required
+              value={formData.status}
+              onChange={(e) =>
+                setFormData({ ...formData, status: e.target.value as BatchStatus })
+              }
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="Draft">Draft</option>
+              <option value="Open">Open</option>
+              <option value="Ongoing">Ongoing</option>
+              <option value="Closed">Closed</option>
+              <option value="Completed">Completed</option>
+              <option value="Cancelled">Cancelled</option>
             </select>
           </div>
 
@@ -822,33 +775,34 @@ export default function BatchManagementPage() {
             <label className="block text-sm font-bold text-gray-700 mb-1">
               Select Weekdays
             </label>
-            <div className="w-full flex items-center gap-2">
-              {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
-                <button
-                  key={day}
-                  type="button"
-                  onClick={() => {
-                    const isSelected = formData.weekdays?.includes(day);
-                    setFormData({
-                      ...formData,
-                      weekdays: isSelected
-                        ? formData.weekdays.filter((d) => d !== day)
-                        : [...(formData.weekdays || []), day],
-                    });
-                  }}
-                  className={`w-full px-3 py-1 rounded-lg border cursor-pointer ${
-                    formData.weekdays?.includes(day)
-                      ? "bg-indigo-500 text-white"
-                      : "bg-white text-gray-700 border-gray-300"
-                  }`}
-                >
-                  {day}
-                </button>
-              ))}
+            <div className="w-full flex items-center gap-2 flex-wrap">
+              {WEEKDAY_OPTIONS.map((day) => {
+                const isSelected = formData.weekdays.includes(day);
+                return (
+                  <button
+                    key={day}
+                    type="button"
+                    onClick={() => {
+                      setFormData({
+                        ...formData,
+                        weekdays: isSelected
+                          ? formData.weekdays.filter((d) => d !== day)
+                          : [...formData.weekdays, day],
+                      });
+                    }}
+                    className={`px-3 py-1 rounded-lg border cursor-pointer ${
+                      isSelected
+                        ? "bg-indigo-500 text-white border-indigo-500"
+                        : "bg-white text-gray-700 border-gray-300"
+                    }`}
+                  >
+                    {day}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          {/* Timings */}
           <div className="md:col-span-2">
             <label className="block text-sm font-bold text-gray-700 mb-1">
               Batch Timings
@@ -857,9 +811,7 @@ export default function BatchManagementPage() {
               <div className="w-1/2">
                 <CustomTimePicker
                   value={formData.startTime}
-                  onChange={(val) =>
-                    setFormData({ ...formData, startTime: val })
-                  }
+                  onChange={(val) => setFormData({ ...formData, startTime: val })}
                 />
               </div>
               <span>to</span>
@@ -874,7 +826,6 @@ export default function BatchManagementPage() {
         </div>
       </FormModal>
 
-      {/* Edit Batch Modal */}
       <FormModal
         isOpen={isEditModalOpen}
         onClose={() => {
@@ -889,7 +840,6 @@ export default function BatchManagementPage() {
         size="lg"
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Batch Name */}
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Batch Name *
@@ -898,15 +848,12 @@ export default function BatchManagementPage() {
               type="text"
               required
               value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="e.g., Web Development - Morning Batch"
+              placeholder="e.g., Morning Batch"
             />
           </div>
 
-          {/* Branch */}
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Branch *
@@ -914,75 +861,105 @@ export default function BatchManagementPage() {
             <select
               required
               value={formData.branchId}
-              onChange={(e) =>
-                setFormData({ ...formData, branchId: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, branchId: e.target.value })}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
               <option value="">Select a branch</option>
-              <option key="1" value={1}>
-                Indiranagar
-              </option>
-              <option key="2" value={2}>
-                HRBR Layout
-              </option>
-            </select>
-          </div>
-
-          {/* Product */}
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Product *
-            </label>
-            <select
-              required
-              value={formData.courseId}
-              onChange={(e) =>
-                setFormData({ ...formData, courseId: e.target.value })
-              }
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              <option value="">Select a course</option>
-              {courses.map((course) => (
-                <option key={course.id} value={course.id}>
-                  {course.name}
+              {BRANCHES.map((branch) => (
+                <option key={branch.id} value={branch.id}>
+                  {branch.name}
                 </option>
               ))}
             </select>
           </div>
 
-          {/* Select Weekdays */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Max Students *
+            </label>
+            <input
+              type="number"
+              min={1}
+              required
+              value={formData.maxStudents}
+              onChange={(e) =>
+                setFormData({ ...formData, maxStudents: Number(e.target.value) })
+              }
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Medium *
+            </label>
+            <select
+              required
+              value={formData.medium}
+              onChange={(e) =>
+                setFormData({ ...formData, medium: e.target.value as BatchMedium })
+              }
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="Online">Online</option>
+              <option value="Offline">Offline</option>
+              <option value="Hybrid">Hybrid</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Status *
+            </label>
+            <select
+              required
+              value={formData.status}
+              onChange={(e) =>
+                setFormData({ ...formData, status: e.target.value as BatchStatus })
+              }
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="Draft">Draft</option>
+              <option value="Open">Open</option>
+              <option value="Ongoing">Ongoing</option>
+              <option value="Closed">Closed</option>
+              <option value="Completed">Completed</option>
+              <option value="Cancelled">Cancelled</option>
+            </select>
+          </div>
+
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Select Weekdays *
             </label>
             <div className="flex flex-wrap gap-2">
-              {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
-                <button
-                  key={day}
-                  type="button"
-                  onClick={() => {
-                    const isSelected = formData.weekdays?.includes(day);
-                    setFormData({
-                      ...formData,
-                      weekdays: isSelected
-                        ? formData.weekdays.filter((d) => d !== day)
-                        : [...(formData.weekdays || []), day],
-                    });
-                  }}
-                  className={`px-3 py-1 rounded-lg border cursor-pointer ${
-                    formData.weekdays?.includes(day)
-                      ? "bg-indigo-500 text-white"
-                      : "bg-white text-gray-700 border-gray-300"
-                  }`}
-                >
-                  {day}
-                </button>
-              ))}
+              {WEEKDAY_OPTIONS.map((day) => {
+                const isSelected = formData.weekdays.includes(day);
+                return (
+                  <button
+                    key={day}
+                    type="button"
+                    onClick={() => {
+                      setFormData({
+                        ...formData,
+                        weekdays: isSelected
+                          ? formData.weekdays.filter((d) => d !== day)
+                          : [...formData.weekdays, day],
+                      });
+                    }}
+                    className={`px-3 py-1 rounded-lg border cursor-pointer ${
+                      isSelected
+                        ? "bg-indigo-500 text-white border-indigo-500"
+                        : "bg-white text-gray-700 border-gray-300"
+                    }`}
+                  >
+                    {day}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          {/* Timings with CustomTimePicker */}
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Batch Timings *
@@ -992,9 +969,7 @@ export default function BatchManagementPage() {
                 <CustomTimePicker
                   label="Start Time"
                   value={formData.startTime}
-                  onChange={(val) =>
-                    setFormData({ ...formData, startTime: val })
-                  }
+                  onChange={(val) => setFormData({ ...formData, startTime: val })}
                 />
               </div>
               <span>to</span>
@@ -1010,7 +985,6 @@ export default function BatchManagementPage() {
         </div>
       </FormModal>
 
-      {/* View Batch Details Modal */}
       <Modal
         isOpen={isViewModalOpen}
         onClose={() => {
@@ -1030,13 +1004,9 @@ export default function BatchManagementPage() {
               <div>
                 <p className="text-sm font-medium text-gray-600">Status</p>
                 <span
-                  className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${
-                    selectedBatch.status === "Active"
-                      ? "bg-green-100 text-green-700"
-                      : selectedBatch.status === "Upcoming"
-                      ? "bg-yellow-100 text-yellow-700"
-                      : "bg-gray-100 text-gray-700"
-                  }`}
+                  className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${getStatusStyles(
+                    selectedBatch.status,
+                  )}`}
                 >
                   {selectedBatch.status}
                 </span>
@@ -1049,76 +1019,48 @@ export default function BatchManagementPage() {
             </div>
 
             <div>
-              <p className="text-sm font-medium text-gray-600">Product</p>
-              <p className="text-base text-gray-900">{selectedBatch.course}</p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Start Date</p>
-                <p className="text-base text-gray-900">
-                  {new Date(selectedBatch.startDate).toLocaleDateString(
-                    "en-IN",
-                    {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    }
-                  )}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-600">End Date</p>
-                <p className="text-base text-gray-900">
-                  {new Date(selectedBatch.endDate).toLocaleDateString("en-IN", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                </p>
-              </div>
+              <p className="text-sm font-medium text-gray-600">Branch</p>
+              <p className="text-base text-gray-900">
+                {getBranchName(selectedBatch.branchId)}
+              </p>
             </div>
 
             <div>
               <p className="text-sm font-medium text-gray-600">Schedule</p>
               <p className="text-base text-gray-900">
-                {selectedBatch.schedule}
+                {formatSchedule(
+                  selectedBatch.weekdays,
+                  selectedBatch.startTime,
+                  selectedBatch.endTime,
+                )}
               </p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-sm font-medium text-gray-600">Medium</p>
-                <p className="text-base text-gray-900">
-                  {selectedBatch.medium}
-                </p>
+                <p className="text-base text-gray-900">{selectedBatch.medium}</p>
               </div>
-              {selectedBatch.venue && (
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Venue</p>
-                  <p className="text-base text-gray-900">
-                    {selectedBatch.venue}
-                  </p>
-                </div>
-              )}
+              <div>
+                <p className="text-sm font-medium text-gray-600">Max Students</p>
+                <p className="text-base text-gray-900">{selectedBatch.maxStudents}</p>
+              </div>
             </div>
 
             <div>
               <p className="text-sm font-medium text-gray-600">Enrollment</p>
               <div className="flex items-center gap-4 mt-2">
                 <p className="text-base text-gray-900">
-                  {selectedBatch.enrolledStudents} / {selectedBatch.maxStudents}{" "}
-                  students
+                  {selectedBatch.enrolledStudents} / {selectedBatch.maxStudents} students
                 </p>
                 <div className="flex-1 bg-gray-200 rounded-full h-3">
                   <div
                     className="bg-indigo-600 h-3 rounded-full"
                     style={{
-                      width: `${
-                        (selectedBatch.enrolledStudents /
-                          selectedBatch.maxStudents) *
-                        100
-                      }%`,
+                      width: `${Math.min(
+                        (selectedBatch.enrolledStudents / Math.max(selectedBatch.maxStudents, 1)) * 100,
+                        100,
+                      )}%`,
                     }}
                   />
                 </div>
@@ -1129,9 +1071,9 @@ export default function BatchManagementPage() {
               <p className="text-sm font-medium text-gray-600 mb-2">
                 Assigned Instructors
               </p>
-              {selectedBatch.teachers.length > 0 ? (
+              {(selectedBatch.teachers ?? []).length > 0 ? (
                 <div className="flex flex-wrap gap-2">
-                  {selectedBatch.teachers.map((teacher, index) => (
+                  {(selectedBatch.teachers ?? []).map((teacher, index) => (
                     <span
                       key={index}
                       className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm"
@@ -1141,16 +1083,13 @@ export default function BatchManagementPage() {
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-gray-500">
-                  No teachers assigned yet
-                </p>
+                <p className="text-sm text-gray-500">No teachers assigned yet</p>
               )}
             </div>
           </div>
         )}
       </Modal>
 
-      {/* Assign Instructors Modal */}
       <FormModal
         isOpen={isAssignTeachersModalOpen}
         onClose={() => {
@@ -1181,7 +1120,7 @@ export default function BatchManagementPage() {
                       setSelectedTeachers([...selectedTeachers, teacher.id]);
                     } else {
                       setSelectedTeachers(
-                        selectedTeachers.filter((id) => id !== teacher.id)
+                        selectedTeachers.filter((id) => id !== teacher.id),
                       );
                     }
                   }}
@@ -1202,7 +1141,6 @@ export default function BatchManagementPage() {
         </div>
       </FormModal>
 
-      {/* Assign Students Modal */}
       <FormModal
         isOpen={isAssignStudentsModalOpen}
         onClose={() => {
@@ -1224,7 +1162,7 @@ export default function BatchManagementPage() {
               Available seats:{" "}
               <strong>
                 {selectedBatch
-                  ? selectedBatch.maxStudents - selectedBatch.enrolledStudents
+                  ? Math.max(selectedBatch.maxStudents - selectedBatch.enrolledStudents, 0)
                   : 0}
               </strong>
             </p>
@@ -1233,7 +1171,7 @@ export default function BatchManagementPage() {
             {students
               .filter(
                 (student) =>
-                  !student.enrolledBatches.includes(selectedBatch?.id || "")
+                  !student.enrolledBatches.includes(selectedBatch?.id || ""),
               )
               .map((student) => (
                 <label
@@ -1248,7 +1186,7 @@ export default function BatchManagementPage() {
                         setSelectedStudents([...selectedStudents, student.id]);
                       } else {
                         setSelectedStudents(
-                          selectedStudents.filter((id) => id !== student.id)
+                          selectedStudents.filter((id) => id !== student.id),
                         );
                       }
                     }}

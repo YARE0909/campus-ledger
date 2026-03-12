@@ -72,7 +72,7 @@ export interface SuperAdminDashboardResponse {
 }
 
 export interface SubscriptionTierResponse {
-  id: string;
+  id: number;
   name: string;
 }
 
@@ -93,7 +93,7 @@ export interface Institution {
   phone: string;
   address: string;
   subscription_tier: string;
-  subscription_tier_id: string;
+  subscription_tier_id?: string;
   status: string;
   active_students: number;
   total_courses: number;
@@ -114,8 +114,8 @@ export interface CreateInstitutionRequest {
   contact_email: string;
   phone?: string;
   address?: string;
-  subscription_tier_id: string;
   gst?: string;
+  tenantsubscriptiontier_id?: number;
 }
 
 export interface CreateInstitutionResponse {
@@ -124,7 +124,7 @@ export interface CreateInstitutionResponse {
   contact_email: string;
   phone: string;
   address: string;
-  subscription_tier_id: string;
+  subscription_tier_id?: number;
   created_at: Date;
   updated_at: Date;
 }
@@ -136,8 +136,8 @@ export interface UpdateInstitutionRequest {
   contact_email?: string;
   phone?: string;
   address?: string;
-  subscription_tier_id?: string;
   gst?: string;
+  tenantsubscriptiontier_id?: number;
 }
 
 // Response type for updated institution object returned by the API
@@ -147,7 +147,7 @@ export interface UpdateInstitutionResponse {
   contact_email: string;
   phone: string;
   address: string;
-  subscription_tier_id: string;
+  subscription_tier_id?: number;
   status: string;
   active_students: number;
   total_courses: number;

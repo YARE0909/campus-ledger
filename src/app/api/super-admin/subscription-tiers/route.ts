@@ -1,34 +1,36 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ApiResponse } from "@/lib/api/types";
+import { Prisma } from "@prisma/client";
 
 function parseDate(value: unknown): Date | undefined {
-  if (value instanceof Date) {
-    if (!isNaN(value.getTime())) return value;
-    return undefined;
-  }
+  if (value instanceof Date && !isNaN(value.getTime())) return value;
+
   if (typeof value === "string" && value.trim() !== "") {
     const d = new Date(value);
     if (!isNaN(d.getTime())) return d;
   }
+
   return undefined;
 }
 
 function toNumber(value: unknown): number | undefined {
   if (typeof value === "number" && !isNaN(value)) return value;
+
   if (typeof value === "string" && value.trim() !== "") {
     const n = Number(value);
     if (!isNaN(n)) return n;
   }
+
   return undefined;
 }
 
 /**
- * GET: List minimal tiers (id + name)
+ * GET: List tiers
  */
 export async function GET() {
   try {
-    const tiers = await prisma.subscriptionTiers.findMany({
+    const tiers = await prisma.tenantsubscriptiontiers.findMany({
       select: { id: true, name: true },
       orderBy: { name: "asc" },
     });
@@ -41,9 +43,10 @@ export async function GET() {
       data: tiers,
     };
 
-    return NextResponse.json(response, { status: 200 });
+    return NextResponse.json(response);
   } catch (error) {
-    console.error("GET subscription tiers failed:", error);
+    console.error(error);
+
     return NextResponse.json(
       {
         status: 500,
@@ -58,9 +61,7 @@ export async function GET() {
 }
 
 /**
- * POST: Create a new subscription tier
- * Required fields: name, student_count_min, student_count_max, price_per_student, billing_cycle
- * Optional: start_date, end_date
+ * POST: Create subscription tier
  */
 export async function POST(request: Request) {
   try {
@@ -69,62 +70,60 @@ export async function POST(request: Request) {
     const name = typeof body?.name === "string" ? body.name.trim() : "";
     const student_count_min = toNumber(body?.student_count_min);
     const student_count_max = toNumber(body?.student_count_max);
-    const price_per_student = toNumber(body?.price_per_student);
-    const billing_cycle = typeof body?.billing_cycle === "string" ? body.billing_cycle.trim() : "";
+    const price = toNumber(body?.price_per_student);
+    const billing_cycle =
+      typeof body?.billing_cycle === "string" ? body.billing_cycle.trim() : "";
+
     const start_date = parseDate(body?.start_date);
     const end_date = parseDate(body?.end_date);
 
-    // Basic validation
-    if (!name || student_count_min === undefined || student_count_max === undefined || price_per_student === undefined || !billing_cycle) {
+    if (
+      !name ||
+      student_count_min === undefined ||
+      student_count_max === undefined ||
+      price === undefined ||
+      !billing_cycle
+    ) {
       return NextResponse.json(
         {
           status: 400,
-          message: "Missing or invalid required fields. Required: name, student_count_min, student_count_max, price_per_student, billing_cycle",
+          message: "Missing required fields",
           error: true,
-          errorMessage: "Missing or invalid required fields",
+          errorMessage: "Invalid input",
           data: null,
         },
         { status: 400 }
       );
     }
 
-    // Optional sanity checks
     if (student_count_min >= student_count_max) {
       return NextResponse.json(
         {
           status: 400,
           message: "student_count_min must be less than student_count_max",
           error: true,
-          errorMessage: "student_count_min >= student_count_max",
+          errorMessage: "Invalid range",
           data: null,
         },
         { status: 400 }
       );
     }
 
-    const now = new Date();
-
-    // Build create data only with valid fields
-    const createData: any = {
-      name,
-      student_count_min,
-      student_count_max,
-      price_per_student,
-      billing_cycle,
-      created_at: now,
-      updated_at: now,
-    };
-
-    if (start_date) createData.start_date = start_date;
-    if (end_date) createData.end_date = end_date;
-
-    const newTier = await prisma.subscriptionTiers.create({
-      data: createData,
+    const newTier = await prisma.tenantsubscriptiontiers.create({
+      data: {
+        name,
+        student_count_min,
+        student_count_max,
+        billing_cycle,
+        price_per_student: new Prisma.Decimal(price),
+        start_date,
+        end_date,
+      },
     });
 
     const response: ApiResponse<typeof newTier> = {
       status: 201,
-      message: "Subscription tier created successfully",
+      message: "Subscription tier created",
       error: false,
       errorMessage: null,
       data: newTier,
@@ -132,7 +131,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json(response, { status: 201 });
   } catch (error) {
-    console.error("Failed to create subscription tier:", error);
+    console.error(error);
+
     return NextResponse.json(
       {
         status: 500,
@@ -147,30 +147,31 @@ export async function POST(request: Request) {
 }
 
 /**
- * PUT: Partial update (only fields provided will be updated)
- * Body must include: id
- * Any other fields will be sanitized and updated.
+ * PUT: Update tier
  */
 export async function PUT(request: Request) {
   try {
     const body = await request.json();
-    const id = typeof body?.id === "string" ? body.id : undefined;
+
+    const id = toNumber(body?.id);
 
     if (!id) {
       return NextResponse.json(
         {
           status: 400,
-          message: "Missing 'id' in request body",
+          message: "Missing id",
           error: true,
-          errorMessage: "Missing 'id'",
+          errorMessage: "Invalid id",
           data: null,
         },
         { status: 400 }
       );
     }
 
-    // Ensure record exists (this will not attempt to map dates on read)
-    const existing = await prisma.subscriptionTiers.findUnique({ where: { id } });
+    const existing = await prisma.tenantsubscriptiontiers.findUnique({
+      where: { id },
+    });
+
     if (!existing) {
       return NextResponse.json(
         {
@@ -184,58 +185,46 @@ export async function PUT(request: Request) {
       );
     }
 
-    // Build sanitized update payload
-    const sanitized: Record<string, any> = {};
-    for (const [k, v] of Object.entries(body)) {
-      if (k === "id") continue;
-      if (v === undefined || v === null) continue;
+    const updateData: any = {};
 
-      if (k === "start_date" || k === "end_date") {
-        const d = parseDate(v);
-        if (d) sanitized[k] = d;
-        // invalid date -> skip
-      } else if (k === "student_count_min" || k === "student_count_max" || k === "price_per_student") {
-        const n = toNumber(v);
-        if (n !== undefined) sanitized[k] = n;
-      } else {
-        // keep strings / booleans / other primitives as-is
-        sanitized[k] = v;
-      }
-    }
+    if (body.name) updateData.name = body.name;
 
-    if (Object.keys(sanitized).length === 0) {
-      return NextResponse.json(
-        {
-          status: 400,
-          message: "No valid fields provided to update",
-          error: true,
-          errorMessage: "No update fields",
-          data: null,
-        },
-        { status: 400 }
+    if (body.student_count_min)
+      updateData.student_count_min = toNumber(body.student_count_min);
+
+    if (body.student_count_max)
+      updateData.student_count_max = toNumber(body.student_count_max);
+
+    if (body.price_per_student)
+      updateData.price_per_student = new Prisma.Decimal(
+        toNumber(body.price_per_student)!
       );
-    }
 
-    // always update updated_at
-    sanitized.updated_at = new Date();
+    if (body.billing_cycle) updateData.billing_cycle = body.billing_cycle;
 
-    const updated = await prisma.subscriptionTiers.update({
+    const start_date = parseDate(body.start_date);
+    const end_date = parseDate(body.end_date);
+
+    if (start_date) updateData.start_date = start_date;
+    if (end_date) updateData.end_date = end_date;
+
+    updateData.modified_at = new Date();
+
+    const updated = await prisma.tenantsubscriptiontiers.update({
       where: { id },
-      data: sanitized,
+      data: updateData,
     });
 
-    return NextResponse.json(
-      {
-        status: 200,
-        message: "Subscription tier updated successfully",
-        error: false,
-        errorMessage: null,
-        data: updated,
-      },
-      { status: 200 }
-    );
+    return NextResponse.json({
+      status: 200,
+      message: "Subscription tier updated",
+      error: false,
+      errorMessage: null,
+      data: updated,
+    });
   } catch (error) {
-    console.error("Failed to update subscription tier:", error);
+    console.error(error);
+
     return NextResponse.json(
       {
         status: 500,
@@ -250,55 +239,40 @@ export async function PUT(request: Request) {
 }
 
 /**
- * DELETE: Delete a subscription tier by id
- * Body should include: { id: "..." }
+ * DELETE tier
  */
 export async function DELETE(request: Request) {
   try {
     const body = await request.json();
-    const id = typeof body?.id === "string" ? body.id : undefined;
+    const id = toNumber(body?.id);
 
     if (!id) {
       return NextResponse.json(
         {
           status: 400,
-          message: "Missing 'id' in request body",
+          message: "Missing id",
           error: true,
-          errorMessage: "Missing 'id'",
+          errorMessage: "Invalid id",
           data: null,
         },
         { status: 400 }
       );
     }
 
-    const exists = await prisma.subscriptionTiers.findUnique({ where: { id } });
-    if (!exists) {
-      return NextResponse.json(
-        {
-          status: 404,
-          message: "Subscription tier not found",
-          error: true,
-          errorMessage: "Not found",
-          data: null,
-        },
-        { status: 404 }
-      );
-    }
+    await prisma.tenantsubscriptiontiers.delete({
+      where: { id },
+    });
 
-    await prisma.subscriptionTiers.delete({ where: { id } });
-
-    return NextResponse.json(
-      {
-        status: 200,
-        message: "Subscription tier deleted successfully",
-        error: false,
-        errorMessage: null,
-        data: null,
-      },
-      { status: 200 }
-    );
+    return NextResponse.json({
+      status: 200,
+      message: "Subscription tier deleted",
+      error: false,
+      errorMessage: null,
+      data: null,
+    });
   } catch (error) {
-    console.error("Failed to delete subscription tier:", error);
+    console.error(error);
+
     return NextResponse.json(
       {
         status: 500,

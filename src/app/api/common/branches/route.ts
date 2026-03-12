@@ -3,18 +3,20 @@ import { prisma } from "@/lib/prisma";
 import { ApiResponse } from "@/lib/api/types";
 
 export interface Branch {
-  tenant_id: number;
   id: number;
+  tenant_id: number;
   name: string;
   contact_email: string | null;
   phone: string | null;
   address: string | null;
   gst: string | null;
   created_at: Date | null;
-  updated_at: Date | null;
+  modified_at: Date | null;
 }
 
-// GET: Fetch all branches for a tenant
+/* =========================
+   GET: Fetch branches
+========================= */
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
@@ -38,17 +40,16 @@ export async function GET(req: Request) {
       orderBy: { name: "asc" },
     });
 
-    const response: ApiResponse<Branch[]> = {
+    return NextResponse.json<ApiResponse<Branch[]>>({
       status: 200,
       message: "Branches fetched successfully",
       error: false,
       errorMessage: null,
       data: branches,
-    };
-
-    return NextResponse.json(response);
+    });
   } catch (error) {
     console.error("Failed to fetch branches:", error);
+
     return NextResponse.json<ApiResponse<null>>(
       {
         status: 500,
@@ -62,7 +63,9 @@ export async function GET(req: Request) {
   }
 }
 
-// POST: Create a new branch
+/* =========================
+   POST: Create branch
+========================= */
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -72,7 +75,7 @@ export async function POST(req: Request) {
       return NextResponse.json<ApiResponse<null>>(
         {
           status: 400,
-          message: "Missing required fields",
+          message: "name and tenant_id are required",
           error: true,
           errorMessage: "Missing required fields",
           data: null,
@@ -81,33 +84,30 @@ export async function POST(req: Request) {
       );
     }
 
-    const now = new Date();
-
-    const newBranch = await prisma.branches.create({
+    const branch = await prisma.branches.create({
       data: {
         name,
-        tenant_id,
+        tenant_id: Number(tenant_id),
         contact_email: contact_email ?? null,
         phone: phone ?? null,
         address: address ?? null,
         gst: gst ?? null,
-        created_at: now,
-        updated_at: now,
       },
     });
 
-    return NextResponse.json<ApiResponse<typeof newBranch>>(
+    return NextResponse.json<ApiResponse<typeof branch>>(
       {
         status: 201,
         message: "Branch created successfully",
         error: false,
         errorMessage: null,
-        data: newBranch,
+        data: branch,
       },
       { status: 201 },
     );
   } catch (error) {
     console.error("Failed to create branch:", error);
+
     return NextResponse.json<ApiResponse<null>>(
       {
         status: 500,
@@ -121,11 +121,13 @@ export async function POST(req: Request) {
   }
 }
 
-// PUT: Update an existing branch
+/* =========================
+   PUT: Update branch
+========================= */
 export async function PUT(req: Request) {
   try {
     const body = await req.json();
-    const { id, ...fieldsToUpdate } = body;
+    const { id, ...fields } = body;
 
     if (!id) {
       return NextResponse.json<ApiResponse<null>>(
@@ -140,9 +142,11 @@ export async function PUT(req: Request) {
       );
     }
 
-    const existingBranch = await prisma.branches.findUnique({ where: { id } });
+    const branch = await prisma.branches.findUnique({
+      where: { id: Number(id) },
+    });
 
-    if (!existingBranch) {
+    if (!branch) {
       return NextResponse.json<ApiResponse<null>>(
         {
           status: 404,
@@ -155,44 +159,29 @@ export async function PUT(req: Request) {
       );
     }
 
-    // Only update fields provided
-    const sanitizedData: Record<string, any> = {};
-    for (const [key, value] of Object.entries(fieldsToUpdate)) {
-      if (value !== undefined) sanitizedData[key] = value ?? null;
+    const updateData: Record<string, any> = {};
+
+    for (const [key, value] of Object.entries(fields)) {
+      if (value !== undefined) updateData[key] = value ?? null;
     }
 
-    if (Object.keys(sanitizedData).length === 0) {
-      return NextResponse.json<ApiResponse<null>>(
-        {
-          status: 400,
-          message: "No valid fields provided for update",
-          error: true,
-          errorMessage: "No valid fields provided for update",
-          data: null,
-        },
-        { status: 400 },
-      );
-    }
-
-    sanitizedData.updated_at = new Date();
+    updateData.modified_at = new Date();
 
     const updatedBranch = await prisma.branches.update({
-      where: { id },
-      data: sanitizedData,
+      where: { id: Number(id) },
+      data: updateData,
     });
 
-    return NextResponse.json<ApiResponse<typeof updatedBranch>>(
-      {
-        status: 200,
-        message: "Branch updated successfully",
-        error: false,
-        errorMessage: null,
-        data: updatedBranch,
-      },
-      { status: 200 },
-    );
+    return NextResponse.json<ApiResponse<typeof updatedBranch>>({
+      status: 200,
+      message: "Branch updated successfully",
+      error: false,
+      errorMessage: null,
+      data: updatedBranch,
+    });
   } catch (error) {
     console.error("Failed to update branch:", error);
+
     return NextResponse.json<ApiResponse<null>>(
       {
         status: 500,
@@ -206,7 +195,9 @@ export async function PUT(req: Request) {
   }
 }
 
-// DELETE: Delete a branch
+/* =========================
+   DELETE: Delete branch
+========================= */
 export async function DELETE(req: Request) {
   try {
     const body = await req.json();
@@ -225,9 +216,11 @@ export async function DELETE(req: Request) {
       );
     }
 
-    const existingBranch = await prisma.branches.findUnique({ where: { id } });
+    const branch = await prisma.branches.findUnique({
+      where: { id: Number(id) },
+    });
 
-    if (!existingBranch) {
+    if (!branch) {
       return NextResponse.json<ApiResponse<null>>(
         {
           status: 404,
@@ -240,20 +233,20 @@ export async function DELETE(req: Request) {
       );
     }
 
-    await prisma.branches.delete({ where: { id } });
+    await prisma.branches.delete({
+      where: { id: Number(id) },
+    });
 
-    return NextResponse.json<ApiResponse<null>>(
-      {
-        status: 200,
-        message: "Branch deleted successfully",
-        error: false,
-        errorMessage: null,
-        data: null,
-      },
-      { status: 200 },
-    );
+    return NextResponse.json<ApiResponse<null>>({
+      status: 200,
+      message: "Branch deleted successfully",
+      error: false,
+      errorMessage: null,
+      data: null,
+    });
   } catch (error) {
     console.error("Failed to delete branch:", error);
+
     return NextResponse.json<ApiResponse<null>>(
       {
         status: 500,

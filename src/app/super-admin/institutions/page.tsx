@@ -36,7 +36,7 @@ import { DeleteInstitutionModal } from "./components/DeleteInstitutionModal";
 
 export default function InstitutionsPage() {
   const [selectedInstitution, setSelectedInstitution] = useState<string | null>(
-    null
+    null,
   );
   const [showAddModal, setShowAddModal] = useState(false);
   const [institutions, setInstitutions] = useState<Institution[]>([]);
@@ -47,7 +47,7 @@ export default function InstitutionsPage() {
   const [showUpdateModal, setShowUpdateModal] = useState(false);
 
   const [deleteInstitutionId, setDeleteInstitutionId] = useState<string | null>(
-    null
+    null,
   );
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteInstitutionName, setDeleteInstitutionName] =
@@ -58,11 +58,11 @@ export default function InstitutionsPage() {
     contact_email: "",
     phone: "",
     address: "",
-    subscription_tier_id: "",
+    tenantsubscriptiontier_id: undefined,
     gst: "",
   });
   const [subscriptionTiers, setSubscriptionTiers] = useState<
-    { id: string; name: string }[]
+    { id: number; name: string }[]
   >([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -72,6 +72,7 @@ export default function InstitutionsPage() {
       const { data } = res;
 
       if (data) {
+        console.log({ data });
         setSubscriptionTiers(data);
       }
     } catch (err) {
@@ -97,7 +98,7 @@ export default function InstitutionsPage() {
 
   async function updateInstitution(
     id: string,
-    updatedData: Partial<CreateInstitutionRequest>
+    updatedData: Partial<CreateInstitutionRequest>,
   ) {
     setIsSubmitting(true);
     try {
@@ -108,7 +109,7 @@ export default function InstitutionsPage() {
       if (res.status === 200) {
         toast.success("Institution updated successfully");
         fetchData(); // Refresh institution list
-        setShowAddModal(false);
+        setShowUpdateModal(false);
       } else {
         throw new Error(res.message || "Update failed");
       }
@@ -283,7 +284,7 @@ export default function InstitutionsPage() {
       key: "subscription_tier",
       label: "Subscription Tier",
       options: subscriptionTiers.map((item) => {
-        return { value: item.id, label: item.name };
+        return { value: item.id.toString(), label: item.name };
       }),
     },
   ];
@@ -295,7 +296,7 @@ export default function InstitutionsPage() {
         onClick={(e) => {
           e.stopPropagation();
           setSelectedInstitution(
-            selectedInstitution === item.id ? null : item.id
+            selectedInstitution === item.id ? null : item.id,
           );
         }}
         className="p-2 hover:bg-gray-100 rounded-lg transition"
@@ -309,6 +310,7 @@ export default function InstitutionsPage() {
             onClick={() => {
               // e.g. open edit modal with selected institution data
               setSelectedInstitution(item.id);
+              console.log({ item });
               // populate formData for editing
               setUpdateFormData({
                 id: item.id,
@@ -316,8 +318,8 @@ export default function InstitutionsPage() {
                 contact_email: item.contact_email,
                 phone: item.phone,
                 address: item.address,
-                subscription_tier_id: item.subscription_tier_id,
-                gst: item.gst
+                tenantsubscriptiontier_id: Number(item.subscription_tier_id),
+                gst: item.gst,
               });
               setShowUpdateModal(true);
             }}
@@ -348,16 +350,20 @@ export default function InstitutionsPage() {
     try {
       const res = await apiHandler(endpoints.createInstitution, formData);
       if (!res.status || res.status !== 201) {
+        console.log({ res });
         throw new Error("Failed to create institution");
       }
+
       setShowAddModal(false);
       setFormData({
         name: "",
         contact_email: "",
         phone: "",
         address: "",
-        subscription_tier_id: "",
+        tenantsubscriptiontier_id: undefined,
+        gst: "",
       });
+
       fetchData();
     } catch (error) {
       console.error(error);
@@ -461,7 +467,7 @@ export default function InstitutionsPage() {
           if (updateFormData && selectedInstitution) {
             await updateInstitution(
               selectedInstitution,
-              updateFormData as Partial<CreateInstitutionRequest>
+              updateFormData as Partial<CreateInstitutionRequest>,
             );
             setShowUpdateModal(false);
           }

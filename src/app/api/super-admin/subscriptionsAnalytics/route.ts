@@ -1,16 +1,16 @@
-import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { ApiResponse } from '@/lib/api/types';
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { ApiResponse } from "@/lib/api/types";
 
 export interface SubscriptionTierAnalytics {
-  id: string;
+  id: number;
   name: string;
   student_count_min: number;
   student_count_max: number;
   price_per_student: number;
   billing_cycle: string;
-  created_at: Date;
-  updated_at: Date;
+  created_at: Date | null;
+  modified_at: Date | null;
   active_institutions: number;
   total_revenue: number;
 }
@@ -21,46 +21,37 @@ export interface SubscriptionTiersAnalyticsData {
 
 export async function GET() {
   try {
-    // Fetch subscription tiers with tenant subscriptions and revenue
-    const tiers = await prisma.subscriptionTiers.findMany({
+    const tiers = await prisma.tenantsubscriptiontiers.findMany({
       include: {
-        TenantSubscriptions: {
-          include: {
-            Tenants: {
-              select: {
-                id: true,
-              },
-            },
-          },
+        tenantsubscriptions: {
+          select: { tenant_id: true },
         },
-        InstitutionBilling: {
-          where: { status: 'PAID' },
-          select: { total_amount: true },
+        tenantbilling: {
+          where: { bill_status: "Active" },
+          select: { bill_total_amount: true },
         },
       },
     });
 
-    // Process active institutions count and revenue
-    const subscriptionTiers = tiers.map((tier) => {
-      // Active institutions count (count unique tenants linked via TenantSubscriptions)
+    const subscriptionTiers: SubscriptionTierAnalytics[] = tiers.map((tier) => {
       const active_institutions = new Set(
-        tier.TenantSubscriptions.map((ts) => ts.tenantsId)
+        tier.tenantsubscriptions.map((ts) => ts.tenant_id)
       ).size;
 
-      // Sum total_amount from institution billings linked to this tier
-      const total_revenue = tier.InstitutionBilling.reduce(
-        (sum, billing) => sum + (billing.total_amount ?? 0),
+      const total_revenue = tier.tenantbilling.reduce(
+        (sum, billing) => sum + Number(billing.bill_total_amount ?? 0),
         0
       );
 
-      const {
-        TenantSubscriptions,
-        InstitutionBilling,
-        ...rest
-      } = tier;
-
       return {
-        ...rest,
+        id: tier.id,
+        name: tier.name,
+        student_count_min: tier.student_count_min,
+        student_count_max: tier.student_count_max,
+        price_per_student: Number(tier.price_per_student),
+        billing_cycle: tier.billing_cycle,
+        created_at: tier.created_at,
+        modified_at: tier.modified_at,
         active_institutions,
         total_revenue,
       };
@@ -72,7 +63,7 @@ export async function GET() {
 
     const response: ApiResponse<SubscriptionTiersAnalyticsData> = {
       status: 200,
-      message: 'Subscription tiers analytics fetched successfully',
+      message: "Subscription tiers analytics fetched successfully",
       error: false,
       errorMessage: null,
       data: responseData,
@@ -80,16 +71,18 @@ export async function GET() {
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Failed to fetch subscription tiers analytics', error);
+    console.error("Failed to fetch subscription tiers analytics", error);
 
-    const response: ApiResponse<null> = {
-      status: 500,
-      message: 'Failed to fetch subscription tiers analytics',
-      error: true,
-      errorMessage: 'Failed to fetch subscription tiers analytics',
-      data: null,
-    };
-
-    return NextResponse.json(response, { status: 500 });
+    return NextResponse.json(
+      {
+        status: 500,
+        message: "Failed to fetch subscription tiers analytics",
+        error: true,
+        errorMessage:
+          error instanceof Error ? error.message : "Unknown error",
+        data: null,
+      },
+      { status: 500 }
+    );
   }
 }

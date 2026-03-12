@@ -7,12 +7,32 @@ export async function GET(request: Request) {
   try {
     const url = new URL(request.url);
     const id = url.searchParams.get("id");
+
     let data;
+
     if (id) {
-      data = await prisma.tenants.findUnique({ where: { id: Number(id) } });
+      data = await prisma.tenants.findUnique({
+        where: { id: Number(id) },
+        include: {
+          tenantsubscriptions: {
+            include: {
+              tenantsubscriptiontiers: true,
+            },
+          },
+        },
+      });
     } else {
-      data = await prisma.tenants.findMany();
+      data = await prisma.tenants.findMany({
+        include: {
+          tenantsubscriptions: {
+            include: {
+              tenantsubscriptiontiers: true,
+            },
+          },
+        },
+      });
     }
+
     const response: ApiResponse<typeof data> = {
       status: 200,
       message: "Tenant(s) retrieved successfully",
@@ -20,16 +40,21 @@ export async function GET(request: Request) {
       errorMessage: null,
       data,
     };
-    return NextResponse.json(response, { status: 200 });
+
+    return NextResponse.json(response);
   } catch (error) {
-    const response: ApiResponse<null> = {
-      status: 500,
-      message: "Internal Server Error",
-      error: true,
-      errorMessage: "Internal Server Error",
-      data: null,
-    };
-    return NextResponse.json(response, { status: 500 });
+    console.error(error);
+
+    return NextResponse.json(
+      {
+        status: 500,
+        message: "Internal Server Error",
+        error: true,
+        errorMessage: "Internal Server Error",
+        data: null,
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -42,134 +67,127 @@ export async function POST(request: Request) {
       contact_email,
       phone,
       address,
-      subscription_tier_id,
-      gst
-    }: {
-      name: string;
-      contact_email: string;
-      phone?: string;
-      address?: string;
-      subscription_tier_id: string;
-      gst: string
+      tenantsubscriptiontier_id,
+      gst,
     } = body;
 
-    if (!name || !contact_email || !subscription_tier_id) {
-      const response: ApiResponse<null> = {
-        status: 400,
-        message: "Required fields: name, contact_email, subscription_tier_id",
-        error: true,
-        errorMessage:
-          "Required fields: name, contact_email, subscription_tier_id",
-        data: null,
-      };
-      return NextResponse.json(response, { status: 400 });
+    if (!name || !contact_email || !tenantsubscriptiontier_id) {
+      return NextResponse.json(
+        {
+          status: 400,
+          message:
+            "Required fields: name, contact_email, tenantsubscriptiontier_id",
+          error: true,
+          errorMessage:
+            "Required fields: name, contact_email, tenantsubscriptiontier_id",
+          data: null,
+        },
+        { status: 400 }
+      );
     }
 
-    // Create tenant
     const now = new Date();
-    const newTenant = await prisma.tenants.create({
-      data: {
-        name,
-        contact_email,
-        phone: phone ?? "",
-        address: address ?? "",
-        gst: gst ?? "", // default or can be extended to accept
-        created_at: now,
-        updated_at: now,
-      },
+    const endDate = new Date();
+    endDate.setFullYear(endDate.getFullYear() + 1);
+
+    const result = await prisma.$transaction(async (tx: { tenants: { create: (arg0: { data: { name: any; contact_email: any; phone: any; address: any; gst: any; created_at: Date; modified_at: Date; }; }) => any; }; branches: { create: (arg0: { data: { name: string; contact_email: any; phone: any; address: any; gst: string; tenant_id: any; created_at: Date; modified_at: Date; }; }) => any; }; tenantsubscriptions: { create: (arg0: { data: { tenant_id: any; tenantsubscriptiontier_id: number; start_date: Date; end_date: Date; created_at: Date; modified_at: Date; }; }) => any; }; users: { create: (arg0: { data: { tenant_id: any; name: string; email: string; password: string; role: string; is_active: boolean; created_at: Date; modified_at: Date; }; }) => any; }; }) => {
+      const tenant = await tx.tenants.create({
+        data: {
+          name,
+          contact_email,
+          phone: phone ?? "",
+          address: address ?? "",
+          gst: gst ?? "",
+          created_at: now,
+          modified_at: now,
+        },
+      });
+
+      const branch = await tx.branches.create({
+        data: {
+          name: "Main Branch",
+          contact_email,
+          phone: phone ?? "",
+          address: address ?? "",
+          gst: "",
+          tenant_id: tenant.id,
+          created_at: now,
+          modified_at: now,
+        },
+      });
+
+      const subscription = await tx.tenantsubscriptions.create({
+        data: {
+          tenant_id: tenant.id,
+          tenantsubscriptiontier_id: Number(tenantsubscriptiontier_id),
+          start_date: now,
+          end_date: endDate,
+          created_at: now,
+          modified_at: now,
+        },
+      });
+
+      const emailParts = contact_email.split("@");
+      const adminEmail = `${emailParts[0]}.admin@${emailParts[1]}`;
+
+      const defaultAdminPassword = "admin@123";
+      const hashedPassword = await bcrypt.hash(defaultAdminPassword, 10);
+
+      const user = await tx.users.create({
+        data: {
+          tenant_id: tenant.id,
+          name: `${name} Admin`,
+          email: adminEmail,
+          password: hashedPassword,
+          role: "admin",
+          is_active: true,
+          created_at: now,
+          modified_at: now,
+        },
+      });
+
+      const { password: _, ...userWithoutPassword } = user;
+
+      return {
+        tenant,
+        branch,
+        subscription,
+        adminUser: userWithoutPassword,
+        defaultAdminPassword,
+      };
     });
 
-    // Create default 'Main Branch'
-    const mainBranch = await prisma.branches.create({
-      data: {
-        name: "Main Branch",
-        contact_email,
-        phone: phone ?? "",
-        address: address ?? "",
-        gst: "",
-        tenant_id: newTenant.id,
-        created_at: now,
-        updated_at: now,
-      },
-    });
-
-    // Create TenantSubscription linking tenant to SubscriptionTier
-    const newTenantSubscription = await prisma.tenantsubscriptions.create({
-      data: {
-        tenant_id: Number(newTenant.id),
-        subscriptiontierid: Number(subscription_tier_id),
-        start_date: now,
-        end_date: new Date(now.setFullYear(now.getFullYear() + 1)), // 1-year subscription
-        created_at: now,
-        updated_at: now,
-      },
-    });
-
-    // Create default admin user for tenant with unique email and default password 'admin@123'
-    // Generate unique email for admin - here using contact_email prefix + admin@tenant
-    const adminEmailPrefix = contact_email.split("@")[0];
-    const adminEmail = `${adminEmailPrefix}.admin@${
-      contact_email.split("@")[1]
-    }`;
-    const defaultAdminPassword = "admin@123";
-    const hashedPassword = await bcrypt.hash(defaultAdminPassword, 10);
-
-    const newUser = await prisma.users.create({
-      data: {
-        tenant_id: newTenant.id,
-        name: `${name} Admin`,
-        email: adminEmail,
-        password: hashedPassword,
-        role: "admin",
-        is_active: true,
-        created_at: now,
-        updated_at: now,
-      },
-    });
-
-    const { password: _, ...userWithoutPassword } = newUser;
-
-    const response: ApiResponse<{
-      tenant: typeof newTenant;
-      branch: typeof mainBranch;
-      subscription: typeof newTenantSubscription;
-      adminUser: typeof userWithoutPassword;
-      defaultAdminPassword: string; // returning so frontend can show initial credentials
-    }> = {
+    const response: ApiResponse<typeof result> = {
       status: 201,
       message:
         "Tenant, branch, subscription, and default admin user created successfully",
       error: false,
       errorMessage: null,
-      data: {
-        tenant: newTenant,
-        branch: mainBranch,
-        subscription: newTenantSubscription,
-        adminUser: userWithoutPassword,
-        defaultAdminPassword,
-      },
+      data: result,
     };
 
     return NextResponse.json(response, { status: 201 });
   } catch (error) {
     console.error("Error creating tenant:", error);
 
-    const response: ApiResponse<null> = {
-      status: 500,
-      message: "Internal Server Error",
-      error: true,
-      errorMessage: "Internal Server Error",
-      data: null,
-    };
-
-    return NextResponse.json(response, { status: 500 });
+    return NextResponse.json(
+      {
+        status: 500,
+        message: "Internal Server Error",
+        error: true,
+        errorMessage: "Internal Server Error",
+        data: null,
+      },
+      { status: 500 }
+    );
   }
 }
 
 export async function PUT(request: Request) {
   try {
     const body = await request.json();
-    const { id, ...fieldsToUpdate } = body;
+    const { id, ...fields } = body;
+
     if (!id) {
       return NextResponse.json(
         {
@@ -182,9 +200,12 @@ export async function PUT(request: Request) {
         { status: 400 }
       );
     }
-    // Fetch existing tenant to fill gaps for omitted fields
-    const existingTenant = await prisma.tenants.findUnique({ where: { id } });
-    if (!existingTenant) {
+
+    const tenant = await prisma.tenants.findUnique({
+      where: { id: Number(id) },
+    });
+
+    if (!tenant) {
       return NextResponse.json(
         {
           status: 404,
@@ -197,46 +218,46 @@ export async function PUT(request: Request) {
       );
     }
 
-    // Prepare update data, fallback to old value if not passed
-    const updateData = {
-      name: fieldsToUpdate.name ?? existingTenant.name,
-      contact_email:
-        fieldsToUpdate.contact_email ?? existingTenant.contact_email,
-      phone: fieldsToUpdate.phone ?? existingTenant.phone,
-      address: fieldsToUpdate.address ?? existingTenant.address,
-      gst: fieldsToUpdate.gst ?? existingTenant.gst,
-      updated_at: new Date(),
-    };
     const updatedTenant = await prisma.tenants.update({
-      where: { id },
-      data: updateData,
+      where: { id: Number(id) },
+      data: {
+        name: fields.name ?? tenant.name,
+        contact_email: fields.contact_email ?? tenant.contact_email,
+        phone: fields.phone ?? tenant.phone,
+        address: fields.address ?? tenant.address,
+        gst: fields.gst ?? tenant.gst,
+        modified_at: new Date(),
+      },
     });
 
-    const response: ApiResponse<typeof updatedTenant> = {
+    return NextResponse.json({
       status: 200,
       message: "Tenant updated successfully",
       error: false,
       errorMessage: null,
       data: updatedTenant,
-    };
-    return NextResponse.json(response, { status: 200 });
+    });
   } catch (error) {
-    const response: ApiResponse<null> = {
-      status: 500,
-      message: "Internal Server Error",
-      error: true,
-      errorMessage: "Internal Server Error",
-      data: null,
-    };
-    return NextResponse.json(response, { status: 500 });
+    console.error(error);
+
+    return NextResponse.json(
+      {
+        status: 500,
+        message: "Internal Server Error",
+        error: true,
+        errorMessage: "Internal Server Error",
+        data: null,
+      },
+      { status: 500 }
+    );
   }
 }
 
-// DELETE: Delete tenant (by id from query param)
 export async function DELETE(request: Request) {
   try {
     const url = new URL(request.url);
-    const tenantId = url.searchParams.get("id");
+    const tenantId = Number(url.searchParams.get("id"));
+
     if (!tenantId) {
       return NextResponse.json(
         {
@@ -250,234 +271,72 @@ export async function DELETE(request: Request) {
       );
     }
 
-    // Delete dependent records in correct order to avoid FK errors
+    await prisma.$transaction(async (tx: { users: { deleteMany: (arg0: { where: { tenant_id: number; }; }) => any; }; branches: { findMany: (arg0: { where: { tenant_id: number; }; select: { id: boolean; }; }) => any; deleteMany: (arg0: { where: { tenant_id: number; }; }) => any; }; tenantbilling: { deleteMany: (arg0: { where: { branch_id: { in: any; }; }; }) => any; }; notifications: { deleteMany: (arg0: { where: { branch_id: { in: any; }; }; }) => any; }; students: { deleteMany: (arg0: { where: { branch_id: { in: any; }; }; }) => any; }; products: { deleteMany: (arg0: { where: { branch_id: { in: any; }; }; }) => any; }; batches: { deleteMany: (arg0: { where: { branch_id: { in: any; }; }; }) => any; }; staff: { deleteMany: (arg0: { where: { branch_id: { in: any; }; }; }) => any; }; tenantsubscriptions: { deleteMany: (arg0: { where: { tenant_id: number; }; }) => any; }; tenants: { delete: (arg0: { where: { id: number; }; }) => any; }; }) => {
+      await tx.users.deleteMany({ where: { tenant_id: tenantId } });
 
-    // 1. Delete Notifications created by Users belonging to tenant
-    // await prisma.notifications.deleteMany({
-    //   where: {
-    //     created_by: {
-    //       in: (
-    //         await prisma.users.findMany({
-    //           where: { tenant_id: tenantId },
-    //           select: { id: true },
-    //         })
-    //       ).map((u) => u.id),
-    //     },
-    //   },
-    // });
+      const branches = await tx.branches.findMany({
+        where: { tenant_id: tenantId },
+        select: { id: true },
+      });
 
-    // 2. Delete Users belonging to the tenant
-    await prisma.users.deleteMany({ where: { tenant_id: Number(tenantId) } });
+      const branchIds = branches.map((b: { id: any; }) => b.id);
 
-    // 3. Find Branches belonging to tenant
-    const branches = await prisma.branches.findMany({
-      where: { tenant_id: Number(tenantId) },
-      select: { id: true },
-    });
-    const branchIds = branches.map((b) => b.id);
-
-    // 4. For each branch, delete dependent records
-
-    // Batches under branches
-    const batchIds = (
-      await prisma.batches.findMany({
+      await tx.tenantbilling.deleteMany({
         where: { branch_id: { in: branchIds } },
-        select: { id: true },
-      })
-    ).map((b) => b.id);
+      });
 
-    // Delete Attendances related to Batches
-    await prisma.attendance.deleteMany({
-      where: {
-        batch_id: { in: batchIds },
-      },
-    });
-
-    // Delete EnrollmentBatches related to Batches
-    await prisma.enrollmentbatches.deleteMany({
-      where: {
-        batch_id: { in: batchIds },
-      },
-    });
-
-    // Delete Batches
-    await prisma.batches.deleteMany({
-      where: { branch_id: { in: branchIds } },
-    });
-
-    // Enrollments under products/students in branches, delete dependent data first
-
-    // Get Products under branches
-    const productIds = (
-      await prisma.products.findMany({
+      await tx.notifications.deleteMany({
         where: { branch_id: { in: branchIds } },
-        select: { id: true },
-      })
-    ).map((p) => p.id);
+      });
 
-    // Get Students under branches
-    const studentIds = (
-      await prisma.students.findMany({
+      await tx.students.deleteMany({
         where: { branch_id: { in: branchIds } },
-        select: { id: true },
-      })
-    ).map((s) => s.id);
+      });
 
-    // Get Enrollments related to these products and students
-    const enrollmentIds = (
-      await prisma.enrollments.findMany({
-        where: {
-          product_id: { in: productIds },
-          student_id: { in: studentIds },
-        },
-        select: { id: true },
-      })
-    ).map((e) => e.id);
-
-    // Delete Attendance related to Enrollments
-    await prisma.attendance.deleteMany({
-      where: {
-        enrollment_id: { in: enrollmentIds },
-      },
-    });
-
-    // Delete Performance related to Enrollments or Tenant
-    await prisma.performance.deleteMany({
-      where: {
-        OR: [{ enrollment_id: { in: enrollmentIds } }, { tenant_id: Number(tenantId) }],
-      },
-    });
-
-    // Delete EnrollmentPaymentDetails related to Enrollments
-    await prisma.enrollmentpaymentdetails.deleteMany({
-      where: {
-        enrollment_id: { in: enrollmentIds },
-      },
-    });
-
-    // Delete Enrollments
-    await prisma.enrollments.deleteMany({
-      where: {
-        id: { in: enrollmentIds },
-      },
-    });
-
-    // Delete Students under branches
-    await prisma.students.deleteMany({
-      where: { branch_id: { in: branchIds } },
-    });
-
-    // Delete Products under branches and dependent data
-
-    // Delete ProductFees under products
-    await prisma.productfees.deleteMany({
-      where: { product_id: { in: productIds } },
-    });
-
-    await prisma.products.deleteMany({
-      where: { branch_id: { in: branchIds } },
-    });
-
-    // Delete Staff under branches and related data
-
-    // Get Staff under branches
-    const staffIds = (
-      await prisma.staff.findMany({
+      await tx.products.deleteMany({
         where: { branch_id: { in: branchIds } },
-        select: { id: true },
-      })
-    ).map((s) => s.id);
+      });
 
-    // Delete StaffMappings related to staff
-    await prisma.staffmappings.deleteMany({
-      where: {
-        staff_id: { in: staffIds },
-      },
+      await tx.batches.deleteMany({
+        where: { branch_id: { in: branchIds } },
+      });
+
+      await tx.staff.deleteMany({
+        where: { branch_id: { in: branchIds } },
+      });
+
+      await tx.branches.deleteMany({
+        where: { tenant_id: tenantId },
+      });
+
+      await tx.tenantsubscriptions.deleteMany({
+        where: { tenant_id: tenantId },
+      });
+
+      await tx.tenants.delete({
+        where: { id: tenantId },
+      });
     });
 
-    // Delete Attendance marked by Staff
-    await prisma.attendance.deleteMany({
-      where: {
-        marked_by: { in: staffIds },
-      },
-    });
-
-    // Delete Performance evaluated by Staff
-    await prisma.performance.deleteMany({
-      where: {
-        evaluated_by: { in: staffIds },
-      },
-    });
-
-    // Delete Staff
-    await prisma.staff.deleteMany({
-      where: { branch_id: { in: branchIds } },
-    });
-
-    // Delete Invoices under branches
-    const invoiceIds = (
-      await prisma.invoices.findMany({
-        where: {
-          branch_id: { in: branchIds },
-          student_id: { in: studentIds },
-          product_id: { in: productIds },
-        },
-        select: { id: true },
-      })
-    ).map((i) => i.id);
-
-    // Delete Payments related to invoices
-    await prisma.payments.deleteMany({
-      where: { invoice_id: { in: invoiceIds } },
-    });
-
-    // Delete Invoices
-    await prisma.invoices.deleteMany({
-      where: { id: { in: invoiceIds } },
-    });
-
-    // Delete InstitutionBilling related to branches
-    await prisma.institutionbilling.deleteMany({
-      where: { branch_id: { in: branchIds } },
-    });
-
-    // Delete Notifications related to branches
-    await prisma.notifications.deleteMany({
-      where: { branch_id: { in: branchIds } },
-    });
-
-    // Delete TenantSubscriptions related to tenant
-    await prisma.tenantsubscriptions.deleteMany({
-      where: { tenant_id: Number(tenantId) },
-    });
-
-    // Delete Branches
-    await prisma.branches.deleteMany({
-      where: { tenant_id: Number(tenantId) },
-    });
-
-    // Finally, delete the tenant itself
-    const deletedTenant = await prisma.tenants.delete({
-      where: { id: Number(tenantId) },
-    });
-
-    const response: ApiResponse<typeof deletedTenant> = {
+    return NextResponse.json({
       status: 200,
-      message: "Tenant and all related data deleted successfully",
+      message: "Tenant and related data deleted successfully",
       error: false,
       errorMessage: null,
-      data: deletedTenant,
-    };
-    return NextResponse.json(response, { status: 200 });
+      data: { id: tenantId },
+    });
   } catch (error) {
     console.error("Error deleting tenant:", error);
-    const response: ApiResponse<null> = {
-      status: 500,
-      message: "Internal Server Error",
-      error: true,
-      errorMessage: "Internal Server Error",
-      data: null,
-    };
-    return NextResponse.json(response, { status: 500 });
+
+    return NextResponse.json(
+      {
+        status: 500,
+        message: "Internal Server Error",
+        error: true,
+        errorMessage: "Internal Server Error",
+        data: null,
+      },
+      { status: 500 }
+    );
   }
 }

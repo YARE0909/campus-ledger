@@ -1,10 +1,9 @@
-import { CreateInstitutionRequest } from "@/lib/api/types";
 import React from "react";
 
 interface InstitutionFormProps {
   formData: any;
   setFormData: (data: any) => void;
-  subscriptionTiers: { id: string; name: string }[];
+  subscriptionTiers: { id: number; name: string }[];
 }
 
 export default function InstitutionForm({
@@ -12,6 +11,7 @@ export default function InstitutionForm({
   setFormData,
   subscriptionTiers,
 }: InstitutionFormProps) {
+  console.log({ formData });
   return (
     <>
       <div>
@@ -20,7 +20,7 @@ export default function InstitutionForm({
         </label>
         <input
           type="text"
-          value={formData.name}
+          value={formData?.name ?? ""}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
           required
@@ -33,7 +33,7 @@ export default function InstitutionForm({
         </label>
         <input
           type="email"
-          value={formData.contact_email}
+          value={formData?.contact_email ?? ""}
           onChange={(e) =>
             setFormData({ ...formData, contact_email: e.target.value })
           }
@@ -48,7 +48,7 @@ export default function InstitutionForm({
         </label>
         <input
           type="tel"
-          value={formData.phone}
+          value={formData?.phone ?? ""}
           onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
         />
@@ -59,7 +59,7 @@ export default function InstitutionForm({
           Address
         </label>
         <textarea
-          value={formData.address}
+          value={formData?.address ?? ""}
           onChange={(e) =>
             setFormData({ ...formData, address: e.target.value })
           }
@@ -74,7 +74,7 @@ export default function InstitutionForm({
         </label>
         <input
           type="text"
-          value={formData.gst}
+          value={formData?.gst ?? ""}
           onChange={(e) => setFormData({ ...formData, gst: e.target.value })}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
         />
@@ -85,16 +85,21 @@ export default function InstitutionForm({
           Subscription Tier
         </label>
         <select
-          value={formData.subscription_tier_id}
+          value={formData?.tenantsubscriptiontier_id?.toString() ?? ""}
           onChange={(e) =>
-            setFormData({ ...formData, subscription_tier_id: e.target.value })
+            setFormData({
+              ...formData,
+              tenantsubscriptiontier_id: e.target.value
+                ? Number(e.target.value)
+                : undefined,
+            })
           }
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
           required
         >
           <option value="">Select a tier</option>
           {subscriptionTiers.map((tier) => (
-            <option key={tier.id} value={tier.id}>
+            <option key={tier.id} value={tier.id.toString()}>
               {tier.name}
             </option>
           ))}

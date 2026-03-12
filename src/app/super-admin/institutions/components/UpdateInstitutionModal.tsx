@@ -7,8 +7,10 @@ interface UpdateInstitutionModalProps {
   isOpen: boolean;
   onClose: () => void;
   formData: UpdateInstitutionRequest | null;
-  setFormData: React.Dispatch<React.SetStateAction<UpdateInstitutionRequest | null>>;
-  subscriptionTiers: { id: string; name: string }[];
+  setFormData: React.Dispatch<
+    React.SetStateAction<UpdateInstitutionRequest | null>
+  >;
+  subscriptionTiers: { id: number; name: string }[];
   isSubmitting: boolean;
   onSubmit: (e: React.FormEvent) => Promise<void>;
 }
@@ -32,6 +34,7 @@ export function UpdateInstitutionModal({
       submitLabel="Update Institution"
     >
       <InstitutionForm
+        key={formData?.id}
         formData={formData}
         setFormData={setFormData}
         subscriptionTiers={subscriptionTiers}
