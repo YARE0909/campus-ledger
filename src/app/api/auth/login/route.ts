@@ -67,6 +67,7 @@ export async function POST(request: Request) {
       role: user.role,
       email: user.email,
       name: user.name,
+      tenant_id: user.tenant_id
     };
 
     const token = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });

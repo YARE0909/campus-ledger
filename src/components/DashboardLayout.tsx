@@ -61,16 +61,14 @@ export default function DashboardLayout({
   };
 
   const handleLogout = () => {
-    // Clear user context
     clearUser();
 
-    // Delete token cookie
     destroyCookie(null, "token", {
       path: "/",
+      sameSite: "lax",
     });
 
-    // Redirect to login
-    router.push("/login");
+    router.replace("/login");
   };
 
   useEffect(() => {

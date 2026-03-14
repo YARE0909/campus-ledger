@@ -4,12 +4,14 @@ import {
   CreateBranchResponse,
   CreateInstitutionRequest,
   CreateInstitutionResponse,
+  CreateStudentRequest,
   CreateSubscriptionTierRequest,
   CreateSubscriptionTierResponse,
   DeleteBranchRequest,
   Endpoint,
   GetBranchByTenantRequest,
   GetBranchByTenantResponse,
+  GetStudentsResponse,
   GetSubscriptionTiersAnalyticsResponse,
   GetUserInfoRequest,
   GetUserInfoResponse,
@@ -22,6 +24,7 @@ import {
   UpdateBranchResponse,
   UpdateInstitutionRequest,
   UpdateInstitutionResponse,
+  UpdateStudentRequest,
 } from "./types";
 import { create } from "domain";
 import path from "path";
@@ -113,4 +116,28 @@ export const endpoints = {
     path: () => "/api/common/branches",
     type: "CLOSE",
   } as Endpoint<DeleteBranchRequest, null>,
+
+    getStudents: {
+    method: "GET",
+    path: () => "/api/common/students",
+    type: "CLOSE",
+  } as Endpoint<null, GetStudentsResponse[]>,
+
+  createStudent: {
+    method: "POST",
+    path: () => "/api/common/students",
+    type: "CLOSE",
+  } as Endpoint<CreateStudentRequest, GetStudentsResponse>,
+
+  updateStudent: {
+    method: "PUT",
+    path: ({ id }) => `/api/common/students/${id}`,
+    type: "CLOSE",
+  } as Endpoint<UpdateStudentRequest, GetStudentsResponse>,
+
+  deleteStudent: {
+    method: "DELETE",
+    path: ({ id }) => `/api/common/students/${id}`,
+    type: "CLOSE",
+  } as Endpoint<{ id: number }, null>,
 };

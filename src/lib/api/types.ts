@@ -254,3 +254,37 @@ export interface UpdateBranchResponse {
 export interface DeleteBranchRequest {
   id: string;
 }
+
+export interface GetStudentsRequest {}
+
+export interface GetStudentsResponse {
+  id: number;
+  branch_id: number;
+  branch_name?: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  address: string | null;
+  parent_guardian_name: string | null;
+  parent_guardian_contact: string | null;
+  parent_guardian_email?: string | null;
+  status: "ACTIVE" | "INACTIVE" | "GRADUATED" | "QUIT";
+  enrollment_count?: number;
+  created_at: string;
+}
+
+export interface CreateStudentRequest {
+  branch_id: number;
+  name: string;
+  email?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  parent_guardian_name?: string | null;
+  parent_guardian_contact?: string | null;
+  parent_guardian_email?: string | null;
+  status: string;
+}
+
+export interface UpdateStudentRequest extends CreateStudentRequest {
+  id: number;
+}

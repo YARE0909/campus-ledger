@@ -9,10 +9,6 @@ interface JwtPayload {
 export function middleware(req: NextRequest) {
   const token = req.cookies.get("token")?.value;
   const { pathname } = req.nextUrl;
-
-  console.log("Middleware invoked for path:", pathname);
-  console.log("Token exists:", !!token);
-
   // Helper function to decode JWT payload (Edge-compatible)
   const decodeJwtPayload = (tok: string): JwtPayload | null => {
     try {
@@ -67,7 +63,7 @@ export function middleware(req: NextRequest) {
     // Super admin trying to access regular dashboard
     if (payload.role === "super_admin" && pathname.startsWith("/dashboard")) {
       console.log(
-        "Super admin accessing dashboard, redirecting to /super-admin"
+        "Super admin accessing dashboard, redirecting to /super-admin",
       );
       return NextResponse.redirect(new URL("/super-admin", req.url));
     }
@@ -75,21 +71,21 @@ export function middleware(req: NextRequest) {
     // Non-super-admin trying to access super-admin routes
     if (payload.role === "admin" && pathname.startsWith("/super-admin")) {
       console.log(
-        "Non-super-admin accessing super-admin routes, redirecting to /dashboard"
+        "Non-super-admin accessing super-admin routes, redirecting to /dashboard",
       );
       return NextResponse.redirect(new URL("/dashboard", req.url));
     }
 
     if (payload.role === "tutor" && pathname.startsWith("/super-admin")) {
       console.log(
-        "Non-super-admin accessing super-admin routes, redirecting to /dashboard"
+        "Non-super-admin accessing super-admin routes, redirecting to /dashboard",
       );
       return NextResponse.redirect(new URL("/tutor", req.url));
     }
 
     if (payload.role === "tutor" && pathname.startsWith("/dashboard")) {
       console.log(
-        "Non-super-admin accessing super-admin routes, redirecting to /dashboard"
+        "Non-super-admin accessing super-admin routes, redirecting to /dashboard",
       );
       return NextResponse.redirect(new URL("/tutor", req.url));
     }

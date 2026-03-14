@@ -1,6 +1,7 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ApiResponse } from "@/lib/api/types";
+import { getTenantIdFromRequest } from "@/lib/auth/tenant";
 
 export interface Branch {
   id: number;
@@ -17,10 +18,10 @@ export interface Branch {
 /* =========================
    GET: Fetch branches
 ========================= */
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const tenant_id = searchParams.get("tenant_id");
+    const tenant_id = getTenantIdFromRequest(req);
 
     if (!tenant_id) {
       return NextResponse.json<ApiResponse<null>>(
