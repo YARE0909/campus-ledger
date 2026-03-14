@@ -1,9 +1,11 @@
 import SuperAdminDashboard from "@/app/super-admin/page";
 import {
+  BranchResponse,
   CreateBranchRequest,
   CreateBranchResponse,
   CreateInstitutionRequest,
   CreateInstitutionResponse,
+  CreateStaffRequest,
   CreateStudentRequest,
   CreateSubscriptionTierRequest,
   CreateSubscriptionTierResponse,
@@ -11,6 +13,7 @@ import {
   Endpoint,
   GetBranchByTenantRequest,
   GetBranchByTenantResponse,
+  GetStaffResponse,
   GetStudentsResponse,
   GetSubscriptionTiersAnalyticsResponse,
   GetUserInfoRequest,
@@ -24,6 +27,7 @@ import {
   UpdateBranchResponse,
   UpdateInstitutionRequest,
   UpdateInstitutionResponse,
+  UpdateStaffRequest,
   UpdateStudentRequest,
 } from "./types";
 import { create } from "domain";
@@ -138,6 +142,35 @@ export const endpoints = {
   deleteStudent: {
     method: "DELETE",
     path: ({ id }) => `/api/common/students/${id}`,
+    type: "CLOSE",
+  } as Endpoint<{ id: number }, null>,
+    getBranches: {
+    method: "GET",
+    path: () => "/api/common/branches",
+    type: "CLOSE",
+  } as Endpoint<null, BranchResponse[]>,
+
+  getStaffs: {
+    method: "GET",
+    path: () => "/api/common/staff",
+    type: "CLOSE",
+  } as Endpoint<null, GetStaffResponse[]>,
+
+  createStaff: {
+    method: "POST",
+    path: () => "/api/common/staff",
+    type: "CLOSE",
+  } as Endpoint<CreateStaffRequest, GetStaffResponse>,
+
+  updateStaff: {
+    method: "PUT",
+    path: ({ id }) => `/api/common/staff/${id}`,
+    type: "CLOSE",
+  } as Endpoint<UpdateStaffRequest, GetStaffResponse>,
+
+  deleteStaff: {
+    method: "DELETE",
+    path: ({ id }) => `/api/common/staff/${id}`,
     type: "CLOSE",
   } as Endpoint<{ id: number }, null>,
 };

@@ -288,3 +288,63 @@ export interface CreateStudentRequest {
 export interface UpdateStudentRequest extends CreateStudentRequest {
   id: number;
 }
+
+export interface BranchResponse {
+  id: number;
+  name: string;
+}
+
+export interface GetStaffResponse {
+  id: number;
+  branch_id: number;
+  branch_name?: string | null;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  qualification: string | null;
+  experience: string | null;
+  specialization: string | null;
+  salary: string | null;
+  start_date?: string | null;
+  end_date?: string | null;
+  user_id?: number | null;
+  staff_status:
+    | "Active"
+    | "Inactive"
+    | "On_Leave"
+    | "Suspended"
+    | "Terminated"
+    | "Archived"
+    | "Quit"
+    | null;
+  staff_title?: "Mr" | "Mrs" | "Ms" | "Miss" | "Dr" | "Prof" | null;
+  created_at: string;
+  modified_at?: string | null;
+}
+
+export interface CreateStaffRequest {
+  branch_id: number;
+  name: string;
+  email?: string | null;
+  phone?: string | null;
+  qualification?: string | null;
+  experience?: string | null;
+  specialization?: string | null;
+  salary?: string | number | null;
+  start_date?: string | null;
+  end_date?: string | null;
+  staff_status?:
+    | "Active"
+    | "Inactive"
+    | "On_Leave"
+    | "Suspended"
+    | "Terminated"
+    | "Archived"
+    | "Quit"
+    | null;
+  staff_title?: "Mr" | "Mrs" | "Ms" | "Miss" | "Dr" | "Prof" | null;
+}
+
+export interface UpdateStaffRequest extends CreateStaffRequest {
+  id: number;
+}
