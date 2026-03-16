@@ -102,7 +102,7 @@ model enrollmentbatches {
 
 model enrollments {
   id                Int                 @id @default(autoincrement())
-  product_id        Int
+  product_id        Int?
   student_id        Int
   enrolled_date     DateTime?           @db.DateTime(0)
   completed_date    DateTime?           @db.DateTime(0)
@@ -116,7 +116,7 @@ model enrollments {
   courseevaluation  courseevaluation[]
   courseprogress    courseprogress[]
   enrollmentbatches enrollmentbatches[]
-  products          products            @relation(fields: [product_id], references: [id], map: "fk_enrollments_product_id")
+  products          products?            @relation(fields: [product_id], references: [id], map: "fk_enrollments_product_id")
   students          students            @relation(fields: [student_id], references: [id], map: "fk_enrollments_student_id")
   invoices          invoices[]
 
@@ -250,7 +250,7 @@ model staffmappings {
   @@index([staff_id], map: "fk_staffmapping_staff_id_idx")
 }
 
-model students {
+model students {`
   id                      Int           @id @default(autoincrement())
   branch_id               Int
   name                    String        @db.VarChar(255)

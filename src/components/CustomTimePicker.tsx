@@ -1,5 +1,4 @@
-// components/CustomTimePicker.tsx
-import React from "react";
+import React, { useMemo } from "react";
 
 interface CustomTimePickerProps {
   label?: string;
@@ -7,30 +6,43 @@ interface CustomTimePickerProps {
   onChange: (value: string) => void;
 }
 
+function parseTime(value: string) {
+  if (!value) return { hour: "", minute: "", period: "AM" };
+
+  const trimmed = value.trim();
+
+  const match = trimmed.match(/^(\d{1,2}):(\d{2})(?:\s*(AM|PM))?$/i);
+  if (!match) return { hour: "", minute: "", period: "AM" };
+
+  const hourNum = Number(match[1]);
+  const minute = match[2];
+  const period = (match[3] || "AM").toUpperCase();
+
+  return {
+    hour: String(hourNum), // no leading zero, so it matches the <option> values
+    minute,
+    period: period === "PM" ? "PM" : "AM",
+  };
+}
+
 export default function CustomTimePicker({
   label,
   value,
   onChange,
 }: CustomTimePickerProps) {
-  const [hour, minute, period] = value
-    ? value.match(/(\d+):(\d+)\s*(AM|PM)?/i)?.slice(1) || ["", "", "AM"]
-    : ["", "", "AM"];
+  const parsed = useMemo(() => parseTime(value), [value]);
 
   const handleSelect = (part: "hour" | "minute" | "period", val: string) => {
-    let newHour = hour || "12";
-    let newMinute = minute || "00";
-    let newPeriod = period || "AM";
+    const newHour = part === "hour" ? val : parsed.hour || "12";
+    const newMinute = part === "minute" ? val : parsed.minute || "00";
+    const newPeriod = part === "period" ? val : parsed.period || "AM";
 
-    if (part === "hour") newHour = val;
-    if (part === "minute") newMinute = val;
-    if (part === "period") newPeriod = val;
-
-    onChange(`${newHour.padStart(2, "0")}:${newMinute.padStart(2, "0")} ${newPeriod}`);
+    onChange(`${newHour}:${newMinute} ${newPeriod}`);
   };
 
-  const hours = Array.from({ length: 12 }, (_, i) => (i + 1).toString());
+  const hours = Array.from({ length: 12 }, (_, i) => String(i + 1));
   const minutes = Array.from({ length: 12 }, (_, i) =>
-    (i * 5).toString().padStart(2, "0")
+    String(i * 5).padStart(2, "0"),
   );
   const periods = ["AM", "PM"];
 
@@ -41,9 +53,10 @@ export default function CustomTimePicker({
           {label}
         </label>
       )}
+
       <div className="flex rounded-lg overflow-hidden border border-gray-300 bg-white">
         <select
-          value={hour}
+          value={parsed.hour}
           onChange={(e) => handleSelect("hour", e.target.value)}
           className="w-full px-3 py-2 border-r border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 bg-white cursor-pointer transition duration-150"
           aria-label="Select hour"
@@ -63,7 +76,7 @@ export default function CustomTimePicker({
         </span>
 
         <select
-          value={minute}
+          value={parsed.minute}
           onChange={(e) => handleSelect("minute", e.target.value)}
           className="w-full px-3 py-2 border-r border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 bg-white cursor-pointer transition duration-150"
           aria-label="Select minutes"
@@ -79,7 +92,7 @@ export default function CustomTimePicker({
         </select>
 
         <select
-          value={period}
+          value={parsed.period}
           onChange={(e) => handleSelect("period", e.target.value)}
           className="w-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 bg-white cursor-pointer transition duration-150"
           aria-label="Select AM or PM"
