@@ -1,11 +1,40 @@
+// app/api/common/staff/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
+import bcrypt from "bcryptjs";
+import { randomBytes } from "crypto";
 import { prisma } from "@/lib/prisma";
 import { getTenantIdFromRequest } from "@/lib/auth/tenant";
 
 function toInt(value: string | null, fallback: number) {
   const n = value ? Number(value) : NaN;
   return Number.isFinite(n) ? n : fallback;
+}
+
+function normalizeEmail(email: string) {
+  return email.trim().toLowerCase();
+}
+
+function generateTemporaryPassword(length = 10) {
+  return randomBytes(Math.ceil(length / 2)).toString("hex").slice(0, length);
+}
+
+function generateDefaultTutorPassword(institutionName: string) {
+  const cleanInstitutionName = institutionName
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+
+  return `tutor@${cleanInstitutionName || "institute"}123`;
+}
+
+async function getTenantInstitutionName(tenantId: number) {
+  const tenant = await prisma.tenants.findUnique({
+    where: { id: tenantId },
+    select: { name: true },
+  });
+
+  return tenant?.name?.trim() || "institute";
 }
 
 export async function GET(req: NextRequest) {
@@ -15,7 +44,7 @@ export async function GET(req: NextRequest) {
     if (!tenantId) {
       return NextResponse.json(
         { success: false, message: "Unauthorized" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -51,7 +80,7 @@ export async function GET(req: NextRequest) {
     if (branchId && !branchIds.includes(branchId)) {
       return NextResponse.json(
         { success: false, message: "Branch does not belong to this tenant" },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -108,10 +137,10 @@ export async function GET(req: NextRequest) {
       meta: { page, limit, total },
     });
   } catch (error) {
-    console.error("GET /api/staff error:", error);
+    console.error("GET /api/common/staff error:", error);
     return NextResponse.json(
       { success: false, message: "Failed to fetch staff" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -123,7 +152,7 @@ export async function POST(req: NextRequest) {
     if (!tenantId) {
       return NextResponse.json(
         { success: false, message: "Unauthorized" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -142,13 +171,13 @@ export async function POST(req: NextRequest) {
       end_date,
       staff_status,
       staff_title,
-      user_id,
+      password,
     } = body;
 
-    if (!branch_id || !name) {
+    if (!branch_id || !name || !email) {
       return NextResponse.json(
-        { success: false, message: "branch_id and name are required" },
-        { status: 400 }
+        { success: false, message: "branch_id, name and email are required" },
+        { status: 400 },
       );
     }
 
@@ -156,7 +185,7 @@ export async function POST(req: NextRequest) {
     if (!Number.isFinite(numericBranchId)) {
       return NextResponse.json(
         { success: false, message: "Invalid branch_id" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -171,26 +200,71 @@ export async function POST(req: NextRequest) {
     if (!branch) {
       return NextResponse.json(
         { success: false, message: "Branch not found for this tenant" },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
-    const created = await prisma.staff.create({
-      data: {
-        branch_id: numericBranchId,
-        name: String(name).trim(),
-        email: email ? String(email).trim() : null,
-        phone: phone ? String(phone).trim() : null,
-        qualification: qualification ? String(qualification).trim() : null,
-        experience: experience ? String(experience).trim() : null,
-        specialization: specialization ? String(specialization).trim() : null,
-        salary: salary !== undefined && salary !== null ? new Prisma.Decimal(salary) : null,
-        start_date: start_date ? new Date(start_date) : null,
-        end_date: end_date ? new Date(end_date) : null,
-        staff_status: staff_status ?? "Active",
-        staff_title: staff_title ?? null,
-        user_id: user_id !== undefined && user_id !== null ? Number(user_id) : null,
-      },
+    const normalizedEmail = normalizeEmail(String(email));
+
+    const existingUser = await prisma.users.findUnique({
+      where: { email: normalizedEmail },
+      select: { id: true },
+    });
+
+    if (existingUser) {
+      return NextResponse.json(
+        { success: false, message: "A user with this email already exists" },
+        { status: 409 },
+      );
+    }
+
+    let rawPassword: string;
+
+    if (typeof password === "string" && password.trim()) {
+      rawPassword = password.trim();
+    } else {
+      const institutionName = await getTenantInstitutionName(tenantId);
+      rawPassword = generateDefaultTutorPassword(institutionName);
+    }
+
+    const hashedPassword = await bcrypt.hash(rawPassword, 10);
+
+    const result = await prisma.$transaction(async (tx) => {
+      const createdUser = await tx.users.create({
+        data: {
+          tenant_id: tenantId,
+          name: String(name).trim(),
+          email: normalizedEmail,
+          password: hashedPassword,
+          role: "tutor",
+          is_active: true,
+        },
+      });
+
+      const createdStaff = await tx.staff.create({
+        data: {
+          branch_id: numericBranchId,
+          name: String(name).trim(),
+          email: normalizedEmail,
+          phone: phone ? String(phone).trim() : null,
+          qualification: qualification ? String(qualification).trim() : null,
+          experience: experience ? String(experience).trim() : null,
+          specialization: specialization ? String(specialization).trim() : null,
+          salary:
+            salary !== undefined &&
+            salary !== null &&
+            String(salary).trim() !== ""
+              ? new Prisma.Decimal(salary)
+              : null,
+          start_date: start_date ? new Date(start_date) : null,
+          end_date: end_date ? new Date(end_date) : null,
+          staff_status: staff_status ?? "Active",
+          staff_title: staff_title ?? null,
+          user_id: createdUser.id,
+        },
+      });
+
+      return { createdUser, createdStaff };
     });
 
     return NextResponse.json(
@@ -198,31 +272,315 @@ export async function POST(req: NextRequest) {
         success: true,
         message: "Staff created successfully",
         data: {
-          id: created.id,
-          branch_id: created.branch_id,
-          name: created.name,
-          email: created.email,
-          phone: created.phone,
-          qualification: created.qualification,
-          experience: created.experience,
-          specialization: created.specialization,
-          salary: created.salary ? created.salary.toString() : null,
-          start_date: created.start_date,
-          end_date: created.end_date,
-          user_id: created.user_id,
-          staff_status: created.staff_status,
-          staff_title: created.staff_title,
-          created_at: created.created_at,
-          modified_at: created.modified_at,
+          id: result.createdStaff.id,
+          branch_id: result.createdStaff.branch_id,
+          name: result.createdStaff.name,
+          email: result.createdStaff.email,
+          phone: result.createdStaff.phone,
+          qualification: result.createdStaff.qualification,
+          experience: result.createdStaff.experience,
+          specialization: result.createdStaff.specialization,
+          salary: result.createdStaff.salary
+            ? result.createdStaff.salary.toString()
+            : null,
+          start_date: result.createdStaff.start_date,
+          end_date: result.createdStaff.end_date,
+          user_id: result.createdStaff.user_id,
+          staff_status: result.createdStaff.staff_status,
+          staff_title: result.createdStaff.staff_title,
+          created_at: result.createdStaff.created_at,
+          modified_at: result.createdStaff.modified_at,
+          login_user: {
+            id: result.createdUser.id,
+            email: result.createdUser.email,
+            role: result.createdUser.role,
+          },
+          temporary_password: password ? null : rawPassword,
         },
       },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
-    console.error("POST /api/staff error:", error);
+    console.error("POST /api/common/staff error:", error);
     return NextResponse.json(
       { success: false, message: "Failed to create staff" },
-      { status: 500 }
+      { status: 500 },
+    );
+  }
+}
+
+export async function PUT(req: NextRequest) {
+  try {
+    const tenantId = getTenantIdFromRequest(req);
+
+    if (!tenantId) {
+      return NextResponse.json(
+        { success: false, message: "Unauthorized" },
+        { status: 401 },
+      );
+    }
+
+    const body = await req.json();
+
+    const {
+      id,
+      branch_id,
+      name,
+      email,
+      phone,
+      qualification,
+      experience,
+      specialization,
+      salary,
+      start_date,
+      end_date,
+      staff_status,
+      staff_title,
+      password,
+    } = body;
+
+    const staffId = Number(id);
+    if (!Number.isFinite(staffId)) {
+      return NextResponse.json(
+        { success: false, message: "Invalid staff id" },
+        { status: 400 },
+      );
+    }
+
+    const existingStaff = await prisma.staff.findFirst({
+      where: {
+        id: staffId,
+      },
+      select: {
+        id: true,
+        branch_id: true,
+        user_id: true,
+      },
+    });
+
+    if (!existingStaff) {
+      return NextResponse.json(
+        { success: false, message: "Staff not found" },
+        { status: 404 },
+      );
+    }
+
+    const existingBranch = await prisma.branches.findFirst({
+      where: {
+        id: existingStaff.branch_id,
+        tenant_id: tenantId,
+      },
+      select: { id: true },
+    });
+
+    if (!existingBranch) {
+      return NextResponse.json(
+        { success: false, message: "Staff does not belong to this tenant" },
+        { status: 403 },
+      );
+    }
+
+    let numericBranchId = existingStaff.branch_id;
+
+    if (branch_id !== undefined) {
+      numericBranchId = Number(branch_id);
+      if (!Number.isFinite(numericBranchId)) {
+        return NextResponse.json(
+          { success: false, message: "Invalid branch_id" },
+          { status: 400 },
+        );
+      }
+
+      const branch = await prisma.branches.findFirst({
+        where: {
+          id: numericBranchId,
+          tenant_id: tenantId,
+        },
+        select: { id: true },
+      });
+
+      if (!branch) {
+        return NextResponse.json(
+          { success: false, message: "Branch not found for this tenant" },
+          { status: 403 },
+        );
+      }
+    }
+
+    const normalizedEmail = email ? normalizeEmail(String(email)) : undefined;
+
+    const updated = await prisma.$transaction(async (tx) => {
+      const staffUpdate = await tx.staff.update({
+        where: { id: staffId },
+        data: {
+          ...(branch_id !== undefined ? { branch_id: numericBranchId } : {}),
+          ...(name !== undefined ? { name: String(name).trim() } : {}),
+          ...(email !== undefined ? { email: normalizedEmail } : {}),
+          ...(phone !== undefined
+            ? { phone: phone ? String(phone).trim() : null }
+            : {}),
+          ...(qualification !== undefined
+            ? {
+                qualification: qualification
+                  ? String(qualification).trim()
+                  : null,
+              }
+            : {}),
+          ...(experience !== undefined
+            ? { experience: experience ? String(experience).trim() : null }
+            : {}),
+          ...(specialization !== undefined
+            ? {
+                specialization: specialization
+                  ? String(specialization).trim()
+                  : null,
+              }
+            : {}),
+          ...(salary !== undefined
+            ? {
+                salary:
+                  salary !== null && String(salary).trim() !== ""
+                    ? new Prisma.Decimal(salary)
+                    : null,
+              }
+            : {}),
+          ...(start_date !== undefined
+            ? { start_date: start_date ? new Date(start_date) : null }
+            : {}),
+          ...(end_date !== undefined
+            ? { end_date: end_date ? new Date(end_date) : null }
+            : {}),
+          ...(staff_status !== undefined ? { staff_status } : {}),
+          ...(staff_title !== undefined ? { staff_title } : {}),
+          modified_at: new Date(),
+        },
+      });
+
+      if (staffUpdate.user_id) {
+        const userUpdateData: Record<string, any> = {};
+
+        if (name !== undefined) userUpdateData.name = String(name).trim();
+        if (email !== undefined) userUpdateData.email = normalizedEmail;
+        if (password !== undefined && String(password).trim()) {
+          userUpdateData.password = await bcrypt.hash(
+            String(password).trim(),
+            10,
+          );
+        }
+
+        if (Object.keys(userUpdateData).length > 0) {
+          await tx.users.update({
+            where: { id: staffUpdate.user_id },
+            data: userUpdateData,
+          });
+        }
+      }
+
+      return staffUpdate;
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: "Staff updated successfully",
+      data: {
+        id: updated.id,
+        branch_id: updated.branch_id,
+        name: updated.name,
+        email: updated.email,
+        phone: updated.phone,
+        qualification: updated.qualification,
+        experience: updated.experience,
+        specialization: updated.specialization,
+        salary: updated.salary ? updated.salary.toString() : null,
+        start_date: updated.start_date,
+        end_date: updated.end_date,
+        user_id: updated.user_id,
+        staff_status: updated.staff_status,
+        staff_title: updated.staff_title,
+        created_at: updated.created_at,
+        modified_at: updated.modified_at,
+      },
+    });
+  } catch (error) {
+    console.error("PUT /api/common/staff error:", error);
+    return NextResponse.json(
+      { success: false, message: "Failed to update staff" },
+      { status: 500 },
+    );
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const tenantId = getTenantIdFromRequest(req);
+
+    if (!tenantId) {
+      return NextResponse.json(
+        { success: false, message: "Unauthorized" },
+        { status: 401 },
+      );
+    }
+
+    const body = await req.json();
+    const staffId = Number(body.id);
+
+    if (!Number.isFinite(staffId)) {
+      return NextResponse.json(
+        { success: false, message: "Invalid staff id" },
+        { status: 400 },
+      );
+    }
+
+    const existingStaff = await prisma.staff.findFirst({
+      where: {
+        id: staffId,
+      },
+      select: {
+        id: true,
+        branch_id: true,
+        user_id: true,
+      },
+    });
+
+    if (!existingStaff) {
+      return NextResponse.json(
+        { success: false, message: "Staff not found" },
+        { status: 404 },
+      );
+    }
+
+    const existingBranch = await prisma.branches.findFirst({
+      where: {
+        id: existingStaff.branch_id,
+        tenant_id: tenantId,
+      },
+      select: { id: true },
+    });
+
+    if (!existingBranch) {
+      return NextResponse.json(
+        { success: false, message: "Staff does not belong to this tenant" },
+        { status: 403 },
+      );
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.staff.delete({ where: { id: staffId } });
+
+      if (existingStaff.user_id) {
+        await tx.users.delete({ where: { id: existingStaff.user_id } });
+      }
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: "Staff deleted successfully",
+    });
+  } catch (error) {
+    console.error("DELETE /api/common/staff error:", error);
+    return NextResponse.json(
+      { success: false, message: "Failed to delete staff" },
+      { status: 500 },
     );
   }
 }

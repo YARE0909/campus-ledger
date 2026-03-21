@@ -40,7 +40,7 @@ export interface GetUserInfoResponse {
   name: string;
   email: string;
   role: string;
-  tenant_id: number
+  tenant_id: number;
 }
 
 export interface MonthlyRevenue {
@@ -320,6 +320,7 @@ export interface GetStaffResponse {
   staff_title?: "Mr" | "Mrs" | "Ms" | "Miss" | "Dr" | "Prof" | null;
   created_at: string;
   modified_at?: string | null;
+  temporary_password: string;
 }
 
 export interface CreateStaffRequest {

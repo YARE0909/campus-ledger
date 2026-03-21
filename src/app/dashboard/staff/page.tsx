@@ -60,8 +60,11 @@ export default function StaffPage() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
 
-  const [selectedTeacher, setSelectedTeacher] = useState<GetStaffResponse | null>(null);
-  const [selectedTeacherId, setSelectedTeacherId] = useState<number | null>(null);
+  const [selectedTeacher, setSelectedTeacher] =
+    useState<GetStaffResponse | null>(null);
+  const [selectedTeacherId, setSelectedTeacherId] = useState<number | null>(
+    null,
+  );
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -70,7 +73,10 @@ export default function StaffPage() {
   const [activeTeachers, setActiveTeachers] = useState(0);
   const [averageSalary, setAverageSalary] = useState(0);
   const [newTeachersThisMonth, setNewTeachersThisMonth] = useState(0);
-
+  const [generatedPassword, setGeneratedPassword] = useState<string | null>(
+    null,
+  );
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
   // Form state
   const [formData, setFormData] = useState({
     branch_id: "",
@@ -116,17 +122,31 @@ export default function StaffPage() {
       .filter((n) => Number.isFinite(n)) as number[];
 
     setAverageSalary(
-      salaries.length ? Math.round(salaries.reduce((a, b) => a + b, 0) / salaries.length) : 0
+      salaries.length
+        ? Math.round(salaries.reduce((a, b) => a + b, 0) / salaries.length)
+        : 0,
     );
 
     const now = new Date();
     setNewTeachersThisMonth(
       data.filter((t) => {
         const d = new Date(t.created_at);
-        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-      }).length
+        return (
+          d.getMonth() === now.getMonth() &&
+          d.getFullYear() === now.getFullYear()
+        );
+      }).length,
     );
   };
+
+  useEffect(() => {
+    if (branches.length && !formData.branch_id) {
+      setFormData((prev) => ({
+        ...prev,
+        branch_id: String(branches[0].id),
+      }));
+    }
+  }, [branches]);
 
   const loadData = async () => {
     try {
@@ -183,17 +203,36 @@ export default function StaffPage() {
         qualification: formData.qualification.trim() || null,
         experience: formData.experience.trim() || null,
         specialization: formData.specialization.trim() || null,
-        salary: formData.salary.trim() || null,
+        salary:
+          formData.salary && !isNaN(Number(formData.salary))
+            ? formData.salary
+            : null,
         start_date: formData.start_date || null,
         end_date: formData.end_date || null,
-        staff_status: formData.staff_status as "Active" | "Inactive" | "On_Leave" | "Suspended" | "Terminated" | "Archived" | "Quit" | null | undefined,
-        staff_title: formData.staff_title || null as any,
+        staff_status: formData.staff_status as
+          | "Active"
+          | "Inactive"
+          | "On_Leave"
+          | "Suspended"
+          | "Terminated"
+          | "Archived"
+          | "Quit"
+          | null
+          | undefined,
+        staff_title: formData.staff_title || (null as any),
       };
 
       const res = await apiHandler(endpoints.createStaff, payload);
 
       if (res.error) {
         throw new Error(res.errorMessage || res.message);
+      }
+
+      const tempPassword = res.data?.temporary_password;
+
+      if (tempPassword) {
+        setGeneratedPassword(tempPassword);
+        setShowPasswordModal(true);
       }
 
       toast.success("Instructor added successfully");
@@ -229,7 +268,10 @@ export default function StaffPage() {
         qualification: formData.qualification.trim() || null,
         experience: formData.experience.trim() || null,
         specialization: formData.specialization.trim() || null,
-        salary: formData.salary.trim() || null,
+        salary:
+          formData.salary && !isNaN(Number(formData.salary))
+            ? formData.salary
+            : null,
         start_date: formData.start_date || null,
         end_date: formData.end_date || null,
         staff_status: formData.staff_status,
@@ -284,7 +326,9 @@ export default function StaffPage() {
       salary: teacher.salary || "",
       staff_status: teacher.staff_status || "Active",
       staff_title: teacher.staff_title || "",
-      start_date: teacher.start_date ? String(teacher.start_date).slice(0, 10) : "",
+      start_date: teacher.start_date
+        ? String(teacher.start_date).slice(0, 10)
+        : "",
       end_date: teacher.end_date ? String(teacher.end_date).slice(0, 10) : "",
     });
     setShowEditModal(true);
@@ -299,7 +343,9 @@ export default function StaffPage() {
 
   const sendEmail = async (teacher: GetStaffResponse) => {
     await new Promise((resolve) => setTimeout(resolve, 300));
-    toast.success(`Email action triggered for ${teacher.email || "this instructor"}`);
+    toast.success(
+      `Email action triggered for ${teacher.email || "this instructor"}`,
+    );
     setSelectedTeacherId(null);
   };
 
@@ -359,7 +405,9 @@ export default function StaffPage() {
         <div className="flex items-center gap-2">
           <IndianRupee className="w-4 h-4 text-gray-400" />
           <span className="font-semibold text-gray-900">
-            {item.salary ? `₹${Number(item.salary).toLocaleString("en-IN")}` : "-"}
+            {item.salary
+              ? `₹${Number(item.salary).toLocaleString("en-IN")}`
+              : "-"}
           </span>
         </div>
       ),
@@ -541,7 +589,13 @@ export default function StaffPage() {
         columns={columns}
         filters={filters}
         searchPlaceholder="Search by name, email, qualification..."
-        searchKeys={["name", "email", "qualification", "specialization", "experience"]}
+        searchKeys={[
+          "name",
+          "email",
+          "qualification",
+          "specialization",
+          "experience",
+        ]}
         itemsPerPage={5}
         exportFileName="teachers"
         renderActions={renderActions}
@@ -1003,8 +1057,9 @@ export default function StaffPage() {
                 <p className="text-sm text-gray-600 mb-1">Status</p>
                 <span
                   className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
-                    statusClassMap[selectedTeacher.staff_status || "Inactive"] ||
-                    "bg-gray-100 text-gray-800"
+                    statusClassMap[
+                      selectedTeacher.staff_status || "Inactive"
+                    ] || "bg-gray-100 text-gray-800"
                   }`}
                 >
                   {statusLabelMap[selectedTeacher.staff_status || "Inactive"] ||
@@ -1053,7 +1108,9 @@ export default function StaffPage() {
                   <p className="text-sm text-gray-600 mb-1">Start Date</p>
                   <p className="font-semibold text-gray-900">
                     {selectedTeacher.start_date
-                      ? new Date(selectedTeacher.start_date).toLocaleDateString("en-IN")
+                      ? new Date(selectedTeacher.start_date).toLocaleDateString(
+                          "en-IN",
+                        )
                       : "-"}
                   </p>
                 </div>
@@ -1061,7 +1118,9 @@ export default function StaffPage() {
                   <p className="text-sm text-gray-600 mb-1">End Date</p>
                   <p className="font-semibold text-gray-900">
                     {selectedTeacher.end_date
-                      ? new Date(selectedTeacher.end_date).toLocaleDateString("en-IN")
+                      ? new Date(selectedTeacher.end_date).toLocaleDateString(
+                          "en-IN",
+                        )
                       : "-"}
                   </p>
                 </div>
@@ -1084,11 +1143,52 @@ export default function StaffPage() {
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Joined Date</p>
                   <p className="font-semibold text-gray-900">
-                    {new Date(selectedTeacher.created_at).toLocaleDateString("en-IN")}
+                    {new Date(selectedTeacher.created_at).toLocaleDateString(
+                      "en-IN",
+                    )}
                   </p>
                 </div>
               </div>
             </div>
+          </div>
+        </FormModal>
+      )}
+      {generatedPassword && (
+        <FormModal
+          isOpen={showPasswordModal}
+          onClose={() => {
+            setShowPasswordModal(false);
+            setGeneratedPassword(null);
+          }}
+          title="Temporary Password"
+          onSubmit={(e) => {
+            e.preventDefault();
+            setShowPasswordModal(false);
+            setGeneratedPassword(null);
+          }}
+          submitLabel="Close"
+          size="sm"
+        >
+          <div className="space-y-3">
+            <p className="text-sm text-gray-600">
+              This password is shown only once. Please copy and share with the
+              instructor.
+            </p>
+
+            <div className="p-3 bg-gray-100 rounded-lg font-mono text-lg text-center">
+              {generatedPassword}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                navigator.clipboard.writeText(generatedPassword);
+                toast.success("Copied to clipboard");
+              }}
+              className="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg"
+            >
+              Copy Password
+            </button>
           </div>
         </FormModal>
       )}
