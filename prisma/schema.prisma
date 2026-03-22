@@ -172,13 +172,13 @@ model paymentoptions {
 
 model payments {
   id          Int       @id @default(autoincrement())
-  invoice_id  Int
+  invoice_id  Int?
   paid_on     DateTime? @db.DateTime(0)
   transaction String?   @db.VarChar(50)
   comments    String?   @db.VarChar(1000)
   created_at  DateTime? @default(now()) @db.DateTime(0)
   modified_at DateTime? @default(now()) @db.DateTime(0)
-  invoices    invoices  @relation(fields: [invoice_id], references: [id], map: "fk_payments_invoice_id")
+  invoices    invoices?  @relation(fields: [invoice_id], references: [id], map: "fk_payments_invoice_id")
 
   @@index([invoice_id], map: "fk_payments_invoice_id_idx")
 }
