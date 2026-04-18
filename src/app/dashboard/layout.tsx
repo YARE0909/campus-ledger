@@ -20,14 +20,14 @@ interface LayoutProps {
 
 const superAdminNavItems: NavItem[] = [
   { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
-  { name: "Batches", icon: Clock4, href: "/dashboard/batches" },
   { name: "Branches", icon: Split, href: "/dashboard/branches" },
-  { name: "Products", icon: LibraryBig, href: "/dashboard/courses" },
-  { name: "Invoice", icon: IndianRupee, href: "/dashboard/invoice" },
   { name: "Staff", icon: Users, href: "/dashboard/staff" },
+  { name: "Courses", icon: LibraryBig, href: "/dashboard/courses" },
+  { name: "Batches", icon: Clock4, href: "/dashboard/batches" },
   { name: "Students", icon: GraduationCap, href: "/dashboard/students" },
-  { name: "Progress", icon: ChartSpline, href: "/dashboard/progress" },
+  { name: "Invoice", icon: IndianRupee, href: "/dashboard/invoice" },
   { name: "Payments", icon: IndianRupee, href: "/dashboard/payments" },
+  { name: "Progress", icon: ChartSpline, href: "/dashboard/progress" },
   { name: "Evaluation", icon: TestTubeDiagonal, href: "/dashboard/evaluation" },
 ];
 
