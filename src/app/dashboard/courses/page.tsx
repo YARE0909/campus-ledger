@@ -214,7 +214,11 @@ export default function CoursesPage() {
         const json = await res.json();
 
         const data = getApiData(json);
-        if (res.ok && (json.success === true || json.error === false) && Array.isArray(data)) {
+        if (
+          res.ok &&
+          (json.success === true || json.error === false) &&
+          Array.isArray(data)
+        ) {
           setBranches(
             data.map((item: any) => ({
               id: String(item.id),
@@ -255,7 +259,12 @@ export default function CoursesPage() {
     (async () => {
       try {
         setLoading(true);
-        await Promise.all([fetchCourses(), fetchTeachers(), fetchBranches(), fetchBatches()]);
+        await Promise.all([
+          fetchCourses(),
+          fetchTeachers(),
+          fetchBranches(),
+          fetchBatches(),
+        ]);
       } catch (error: any) {
         toast.error(error?.message || "Failed to load page data");
       } finally {
@@ -664,7 +673,8 @@ export default function CoursesPage() {
               Product Management
             </h1>
             <p className="mt-1 max-w-2xl text-sm text-gray-600">
-              Manage courses, pricing, capacity, branch assignment, and staff assignments in one place.
+              Manage courses, pricing, capacity, branch assignment, and staff
+              assignments in one place.
             </p>
           </div>
 
@@ -1256,9 +1266,22 @@ export default function CoursesPage() {
                 Course information
               </h3>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <DetailItem label="Branch" value={branchLabelById(selectedCourse.branch_id)} />
-                <DetailItem label="Batch" value={selectedCourse.batch_id ? batchLabelById(selectedCourse.batch_id) : "-"} />
-                <DetailItem label="Classes" value={selectedCourse.duration_weeks} />
+                <DetailItem
+                  label="Branch"
+                  value={branchLabelById(selectedCourse.branch_id)}
+                />
+                <DetailItem
+                  label="Batch"
+                  value={
+                    selectedCourse.batch_id
+                      ? batchLabelById(selectedCourse.batch_id)
+                      : "-"
+                  }
+                />
+                <DetailItem
+                  label="Classes"
+                  value={selectedCourse.duration_weeks}
+                />
                 <DetailItem
                   label="Fee"
                   value={`₹${selectedCourse.fee.toLocaleString("en-IN")}`}
