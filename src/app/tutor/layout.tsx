@@ -1,7 +1,14 @@
 "use client";
 
 import React from "react";
-import { LayoutDashboard, Users, ListChecks, FileText } from "lucide-react";
+import {
+  LayoutDashboard,
+  Users,
+  ListChecks,
+  FileText,
+  ChartSpline,
+  TestTubeDiagonal,
+} from "lucide-react";
 import DashboardLayout, { NavItem } from "@/components/DashboardLayout";
 
 interface LayoutProps {
@@ -13,6 +20,8 @@ const superAdminNavItems: NavItem[] = [
   { name: "Attendance", icon: ListChecks, href: "/tutor/attendance" },
   { name: "Reports", icon: FileText, href: "/tutor/reports" },
   { name: "Students", icon: Users, href: "/tutor/students" },
+  { name: "Progress", icon: ChartSpline, href: "/dashboard/progress" },
+  { name: "Evaluation", icon: TestTubeDiagonal, href: "/dashboard/evaluation" },
 ];
 
 export default function SuperAdminLayout({ children }: LayoutProps) {
